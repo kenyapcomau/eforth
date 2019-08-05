@@ -1,0 +1,33 @@
+# Z80 eForth built with JWASM
+
+This directory contains an alternate version of the Z80 eForth. They are the files with lower case names.
+
+The single ASM file has been slightly modified to compile with JWASM, an open source derivative of Watcom ASM that runs under several operating systems, instead of MASM. In the process changes were made to allow the assembler source to complete without errors and make it easier to modify:
+
+* Lines with DW should not have colon after the label, if any.
+
+* A few symbols which clash with mnemonics or keywords have been renamed: CMOV, STR, FOR
+
+* Various pieces of inline Z80 code have been moved into their own files and replaced by INCLUDE <file> in the top level file.
+
+The modified file builds with JWASM with this command:
+
+```jwasm -Fl -bin efz80.z80```
+
+No LINK required. The result efz80.BIN is byte for byte identical with `EFZ80.COM` except for a few locations where a single padding byte due to the EVEN directive resulted in a padding byte of 90H (8086 NOP) for JWASM and 00H for MASM.
+
+Regarding the last bullet point, have you wondered how an 8086 assembler can handle Z80 code? It turns out that all the Z80 code is hand assembled or assembled elsewhere and the opcodes inserted into the source as DBs. MASM or JWASM are used mainly for the MACRO facility. And the ability to generate binaries from source of course. Hence my interest in making the code easier to modify, particularly if you have different serial interface hardware.
+
+## Versioning
+
+First release August 2019
+
+## Authors
+
+For the parts I created:
+
+* **Ken Yap**
+
+## License
+
+See original source for license, which I do not change.
