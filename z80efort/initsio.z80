@@ -1,0 +1,98 @@
+;; Device dependent I/O
+
+;   !IO         ( -- )
+;               Initialize the serial I/O devices.
+
+;!                $CODE   3,'!IO',STOIO ;
+TST:           ; init  SIO interrupt vector
+EXX           ; 4t
+LD  A, 0x0FE
+LD  I, A
+;!DB    21h
+;!DW    SiobRxBAvl       ;       LD  HL, SiobRxBAvl
+LD  (0x0FE04), HL   ; intrrupt vector cell
+;!DB    21h              ;       LD  HL, SiobSRxCond
+;!DW    SiobSRxCond
+LD  (0x0FE06), HL   ; intrrupt vector cell
+                       ;
+                       ;; init SIOB Rx Q ptr
+;!DB    21h, 00h,0FBh   ;       LD  HL, SiobRxQ
+;!DB    22h, 12h,0FEh   ;       LD  (SiobRxQin), HL
+;!DB    22h, 14h,0FEh   ;       LD  (SiobRxQout), HL
+                       ;
+                       ; ; init CTC
+LD  C, 0x11  ; CTC
+LD  A, 0x07
+OUT (C), A
+LD  A, 04
+OUT (C), A
+                       ;
+                       ; ; init HW for my system Z80 PIO
+LD  C, 0x1D  ; PIOA
+LD  A, 0x0CF
+OUT (C), A
+LD  A, 0
+OUT (C), A
+LD  A, 0x17
+OUT (C), A
+LD  A, 0x0FF
+OUT (C), A
+                       ;
+LD  C, 0x1F   ;PIOB
+LD  A, 0x0CF
+OUT (C), A
+LD  A, 0
+OUT (C), A
+LD  A, 0x17
+OUT (C), A
+LD  A, 0x0FF
+OUT (C), A
+
+LD  C, 0x1C
+LD  A, 0x3B ;PIOA data: TST & Green LED
+OUT (C), A
+;DB  0x76 ;!!!!!!!!!! HALT                ; one of testing poing during porting
+LD  C, 0x1E
+LD  A, 0x17     ;PIOB data: .. .
+OUT (C), A
+                       ;
+                       ;;  init SIO
+LD  C, 0x1B
+LD  A, 0x18
+OUT (C), A
+LD  A, 0x01
+OUT (C), A
+LD  A, 0x1D
+OUT (C), A
+                       ;
+LD  A, 0x02
+OUT (C), A
+LD  A, 0x00
+OUT (C), A
+                       ;
+LD  A, 0x03
+OUT (C), A
+LD  A, 0xC1
+OUT (C), A
+                       ;
+LD  A, 0x04
+OUT (C), A
+LD  A, 0x44
+OUT (C), A
+LD  A, 0x05
+OUT (C), A
+                       ;
+LD  A, 0x68
+OUT (C), A
+                       ;
+EI
+NOP
+NOP
+NOP
+;DB    0Eh, 1Eh         ;       LD  C, 1Eh
+;DB    3Eh, 01h         ;       LD  A, 01h  ;off-hook
+;DB   0EDh, 79h         ;       OUT (C), A
+;DB  76H ;!!!!!!!!!! HALT                ;
+EXX           ; 4t
+;!DB   0C3h
+;!DW   NextStep          ;       JP NextStep

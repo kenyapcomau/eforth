@@ -435,4 +435,4 @@ INCLUDE initsio.inc
 
 INCLUDE portio.inc
 
-INCLUDE siotxrx.inc
+INCLUDE siorxtx.inc
