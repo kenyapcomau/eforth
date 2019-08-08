@@ -17,6 +17,7 @@ PIOBC		.equ	0x1F		; control
 EM		.equ	0xFFFF		;top of RAM memory
 BM		.equ	0x0000		;bottom of ROM memory
 COLDD		.equ	BM + 0x00	;cold start vector
+COLDSTART	.equ	0x100		;code starts here
 
 UAB		.equ	0xC000		;user area base address
 UAEM		.equ	0xE200		;user area end of memory address

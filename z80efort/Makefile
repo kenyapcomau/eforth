@@ -3,10 +3,11 @@
 #
 
 efz80.BIN:	efz80.z80 coldstart.inc initdev.inc kernel.inc \
-		memory.inc nextstep.inc portio.inc siorxtx.inc
+		lowmem.inc memory.inc nextstep.inc portio.inc siorxtx.inc \
+		words.inc
 		jwasm -Fl -bin efz80.z80
 
-coldstart.inc initdev.inc kernel.inc nextstep.inc portio.inc siorxtx.inc:	system.def
+coldstart.inc initdev.inc kernel.inc lowmem.inc nextstep.inc portio.inc siorxtx.inc:	system.def
 
 #	Rule to make an .inc file from .z80 source
 
