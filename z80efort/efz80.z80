@@ -320,6 +320,12 @@ INCLUDE nextstep.inc
 
 INCLUDE kernel.inc
 
+INCLUDE initdev.inc
+
+INCLUDE portio.inc
+
+INCLUDE siorxtx.inc
+
 
 ; High level code replaced by low level code
 
@@ -1993,5 +1999,3 @@ CTOP            EQU     0C000H       ;next available memory in code dictionary
 
 MAIN    ENDS
 END     ORIG
-
- 

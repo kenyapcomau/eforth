@@ -6,7 +6,7 @@ efz80.BIN:	efz80.z80 coldstart.inc initdev.inc kernel.inc \
 		memory.inc nextstep.inc portio.inc siorxtx.inc
 		jwasm -Fl -bin efz80.z80
 
-initdev.inc portio.inc siorxtx.inc:	system.def
+coldstart.inc initdev.inc kernel.inc nextstep.inc portio.inc siorxtx.inc:	system.def
 
 #	Rule to make an .inc file from .z80 source
 
@@ -17,5 +17,8 @@ initdev.inc portio.inc siorxtx.inc:	system.def
 #	Compare binary output with original
 
 compare:	EFZ80.COM efz80.BIN
-		echo 'Should only differ in 8 padding bytes, 0 instead of 220'
+		@echo 'Should only differ in 8 padding bytes, 0 instead of 220'
+		@echo ' and these bytes'
+		@echo ' 389  16  20'
+		@echo ' 394  14  11'
 		-cmp -l EFZ80.COM efz80.BIN
