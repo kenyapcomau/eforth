@@ -27,9 +27,10 @@ def hexify(h_s):
 
 def main():
     """Extract code from .lst to make DB declarations"""
-    linecount = 1
     for line in sys.stdin:
         line = line.rstrip("\r\n")
+        if re.match("^Symbol Table", line):	# no more code
+            break
         if len(line) < 31:
             # invalid lines
             continue
@@ -38,13 +39,9 @@ def main():
         op3 = line[14:16].strip()
         lineno = line[27:31].strip()
         code = line[32:]
-        if not re.match("[0-9]+", lineno):
+        if not re.match("^[0-9]+$", lineno):
             # ignore if no line number (headers...)
             continue
-        if int(lineno) != linecount:
-            # lost sync or EOF
-            break
-        linecount += 1
         if op1:
             ops = [hexify(op1)]
             if op2:

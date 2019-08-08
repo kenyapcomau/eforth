@@ -2,9 +2,11 @@
 #	Rules to rebuild eForth binary image
 #
 
-efz80.BIN:	efz80.z80 coldstart.inc initsio.inc kernel.inc \
-		memory.inc nextstep.inc portio.inc siorxtx.inc sva.inc
+efz80.BIN:	efz80.z80 coldstart.inc initdev.inc kernel.inc \
+		memory.inc nextstep.inc portio.inc siorxtx.inc
 		jwasm -Fl -bin efz80.z80
+
+initdev.inc portio.inc siorxtx.inc:	system.def
 
 #	Rule to make an .inc file from .z80 source
 

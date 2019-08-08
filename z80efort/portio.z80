@@ -1,28 +1,31 @@
+.include "system.def"
+
 ;   PC!         ( uc p --  )
 ;               output uc to IO port p
 
 ;!                $CODE   3,'PC!',PCSTO
-EXX           ; 4t
-POP BC        ;10t
-POP DE        ;10t
-LD  A, E      ; 4t
-OUT (C), A    ;12t
-EXX           ; 4t
-;!DB 0C3h
-;!DW NextStep          ;       JP  NextStep  ;10t
-                       ;                     ;54t==(10MHz)5.4usec
+
+EXX		; 4t
+POP BC		;10t
+POP DE		;10t
+LD A, E		; 4t
+OUT (C), A	;12t
+EXX		; 4t
+JP NextStep	;10t
+;54t==(10MHz)5.4usec
+
 
 ;   PC@         ( p -- uc )
 ;               input uc from IO port p
 
 ;!                $CODE   3,'PC@',PCAT
-EXX           ; 4t
-POP BC        ;10t
-IN  A, (C)    ;12t
-LD  E, A      ; 4t
-LD  D, 0      ; 7t
-PUSH DE       ;11t
-EXX           ; 4t
-;!DB 0C3h
-;!DW NextStep          ;       JP  NextStep  ;10t
-                       ;                     ;62t==(10MHz)6.2usec
+
+EXX		; 4t
+POP BC		;10t
+IN A, (C)	;12t
+LD E, A		; 4t
+LD D, 0		; 7t
+PUSH DE		;11t
+EXX		; 4t
+JP NextStep	;10t
+;62t==(10MHz)6.2usec

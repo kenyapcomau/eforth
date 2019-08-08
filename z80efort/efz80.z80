@@ -188,8 +188,6 @@ LISTT           EQU     DOLST                   ;CALL doLIST address
 
 INCLUDE memory.inc
 
-INCLUDE sva.inc
-
 
 ;; Initialize assembly variables
 

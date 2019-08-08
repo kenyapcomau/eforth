@@ -431,7 +431,7 @@ DB   0E5h              ;       PUSH HL        ;11t
 DB   0C3h
 DW   NextStep          ;       JP  NextStep   ;10t
 
-INCLUDE initsio.inc
+INCLUDE initdev.inc
 
 INCLUDE portio.inc
 
