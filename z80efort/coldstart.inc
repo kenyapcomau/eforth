@@ -15,12 +15,12 @@
 
 ;; Memory allocation	0//code>--//--<name//up>--<sp//tib>--rp//em
 
-;EM		.equ	0xFFFF		;top of RAM memory*******
-;BM		.equ	0x0000		;bottom of ROM memory******
-;COLDD		.equ	BM + 0x00	;cold start vector******
+;EM		.equ	0xFFFF		;top of RAM memory
+;BM		.equ	0x0000		;bottom of ROM memory
+;COLDD		.equ	BM + 0x00	;cold start vector
 
-;UAB		.equ	0xC000		;user area base address*******
-;UAEM		.equ	0xE200		;user area end of memory adr*******
+;UAB		.equ	0xC000		;user area base address
+;UAEM		.equ	0xE200		;user area end of memory address
 
 ;US		.equ	0x100		;user area size in cells
 ;RTS		.equ	0x100		;return stack/TIB size
@@ -30,16 +30,16 @@
 ;UPP		.equ	UAEM - 0x100	;start of user area (UP0)
 ;RPP		.equ	UAEM - 0x102	;start of return stack (RP0)
 ;TIBB		.equ	UAEM - 0x200	;terminal input buffer (TIB)
-;NAMEE		.equ	BM + 0x1FFE	;initial name (ROM)dictionary*******
-;CODEE		.equ	BM + 0x0000	;initial code (ROM)dictionary*******
+;NAMEE		.equ	BM + 0x1FFE	;initial name (ROM)dictionary
+;CODEE		.equ	BM + 0x0000	;initial code (ROM)dictionary
 
 ;SiobRxQ		.equ	0xFB00		; one page circular queue
 ;SVAB		.equ	0xFE00		; System Variable Address Base
 ;IVEC		.equ	SVAB + 0x00	; system interrupt vector base address
 ;RxBAvlVec	.equ	SVAB + 0x04	; interrupt vector
 ;SRxCondVec	.equ	SVAB + 0x06	; interrupt vector
-;RP		.equ	SVAB + 0x0C	; R-stack pointer, simulate RP reg
-;UP		.equ	SVAB + 0x0E	; User area
+;RPA		.equ	SVAB + 0x0C	; R-stack pointer, simulate RP reg
+;UPA		.equ	SVAB + 0x0E	; User area
 ;SiobRxQin	.equ	SVAB + 0x12	; SIOB Rx Q input pointer
 ;SiobRxQout	.equ	SVAB + 0x14	; SIOB Rx Q output pointer
 
@@ -92,10 +92,10 @@ DB 21h,0FEh,0E1h	;LD HL, #SPP
 DB 0F9h		;LD SP, HL		; INIT SP
 ;
 DB 21h,0FEh,0E0h	;LD HL, #RPP		; init to RPP
-DB 22h,0Ch,0FEh	;LD (RP), HL		; simulated R-stack reg at RP
+DB 22h,0Ch,0FEh	;LD (RPA), HL		; simulated R-stack reg at RPA
 ;
 DB 21h,00h,0E1h	;LD HL, #UPP		; use the initial USER VARIABLE area
-DB 22h,0Eh,0FEh	;LD (UP), HL		; simulated R-stack reg at RP
+DB 22h,0Eh,0FEh	;LD (UPA), HL		; user area at UPA
 ;
 DB 01h,00h,00h	;LD BC, #ERROR		;jmp 0 cold-start whenever R-stack underflow-used
 ; this is supposed not impossible to be happen

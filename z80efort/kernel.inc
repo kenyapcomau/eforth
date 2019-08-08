@@ -15,12 +15,12 @@
 
 ;; Memory allocation	0//code>--//--<name//up>--<sp//tib>--rp//em
 
-;EM		.equ	0xFFFF		;top of RAM memory*******
-;BM		.equ	0x0000		;bottom of ROM memory******
-;COLDD		.equ	BM + 0x00	;cold start vector******
+;EM		.equ	0xFFFF		;top of RAM memory
+;BM		.equ	0x0000		;bottom of ROM memory
+;COLDD		.equ	BM + 0x00	;cold start vector
 
-;UAB		.equ	0xC000		;user area base address*******
-;UAEM		.equ	0xE200		;user area end of memory adr*******
+;UAB		.equ	0xC000		;user area base address
+;UAEM		.equ	0xE200		;user area end of memory address
 
 ;US		.equ	0x100		;user area size in cells
 ;RTS		.equ	0x100		;return stack/TIB size
@@ -30,16 +30,16 @@
 ;UPP		.equ	UAEM - 0x100	;start of user area (UP0)
 ;RPP		.equ	UAEM - 0x102	;start of return stack (RP0)
 ;TIBB		.equ	UAEM - 0x200	;terminal input buffer (TIB)
-;NAMEE		.equ	BM + 0x1FFE	;initial name (ROM)dictionary*******
-;CODEE		.equ	BM + 0x0000	;initial code (ROM)dictionary*******
+;NAMEE		.equ	BM + 0x1FFE	;initial name (ROM)dictionary
+;CODEE		.equ	BM + 0x0000	;initial code (ROM)dictionary
 
 ;SiobRxQ		.equ	0xFB00		; one page circular queue
 ;SVAB		.equ	0xFE00		; System Variable Address Base
 ;IVEC		.equ	SVAB + 0x00	; system interrupt vector base address
 ;RxBAvlVec	.equ	SVAB + 0x04	; interrupt vector
 ;SRxCondVec	.equ	SVAB + 0x06	; interrupt vector
-;RP		.equ	SVAB + 0x0C	; R-stack pointer, simulate RP reg
-;UP		.equ	SVAB + 0x0E	; User area
+;RPA		.equ	SVAB + 0x0C	; R-stack pointer, simulate RP reg
+;UPA		.equ	SVAB + 0x0E	; User area
 ;SiobRxQin	.equ	SVAB + 0x12	; SIOB Rx Q input pointer
 ;SiobRxQout	.equ	SVAB + 0x14	; SIOB Rx Q output pointer
 
@@ -68,12 +68,12 @@ DB 0C3h,4Fh,01h	;JP  NextStep ;10t    ;(10MHz)5.5usec (+2.5usec NextStep)
 ;               Process colon list.
 
                 $CODE   COMPO+6,'doLIST',DOLST
-DB 2Ah,0Ch,0FEh	;LD  HL, (RP) ;16t
+DB 2Ah,0Ch,0FEh	;LD  HL, (RPA) ;16t
 DB 2Bh		;DEC HL       ; 6t
 DB 70h		;LD  (HL), B  ; 7t      \ end of r-push simulation
 DB 2Bh		;DEC HL       ; 6t
 DB 71h		;LD  (HL), C  ; 7t      \ end of r-push simulation
-DB 22h,0Ch,0FEh	;LD  (RP), HL ;16t      \ IP is r-pushed (simulated)
+DB 22h,0Ch,0FEh	;LD  (RPA), HL ;16t      \ IP is r-pushed (simulated)
 ;                    ;
 DB 0C1h		;POP BC       ;10t
 DB 0C3h,4Fh,01h	;JP  NextStep ;10t
@@ -86,12 +86,12 @@ DB 0C3h,4Fh,01h	;JP  NextStep ;10t
 
                 $CODE   4,'EXIT',EXIT
 
-DB 2Ah,0Ch,0FEh	;LD  HL, (RP) ;16t
+DB 2Ah,0Ch,0FEh	;LD  HL, (RPA) ;16t
 DB 4Eh		;LD  C, (HL)  ; 7t
 DB 23h		;INC HL       ; 6t
 DB 46h		;LD  B, (HL)  ; 7t
 DB 23h		;INC HL       ; 6t
-DB 22h,0Ch,0FEh	;LD  (RP),HL  ;16t
+DB 22h,0Ch,0FEh	;LD  (RPA),HL  ;16t
 DB 0C3h,4Fh,01h	;JP  NextStep ;10t
 ;                    ;68t==6.8us
 
@@ -112,7 +112,7 @@ DB 0E9h		;JP  (HL)      ; 4t
 ;                 r> r> dup if 1 - >r @ >r exit then drop cell+ >r ;
 
                 $CODE   COMPO+4,'next',DONXT
-DB 2Ah,0Ch,0FEh	;LD  HL, (RP) ;16t
+DB 2Ah,0Ch,0FEh	;LD  HL, (RPA) ;16t
 DB 7Eh		;LD  A, (HL)  ; 7t
 DB 0B7h		;OR  A        ; 4t
 DB 20h,10h	;JR  NZ, DECLOW;12/7t a fast dec is ok, only failed every 255 time
@@ -123,7 +123,7 @@ DB 0B7h		;OR  A        ; 4t
 DB 20h,09h	;JR  NZ, DECHILO;12/7t Hi-byte no-zero, it is also a re-loop case
                        ;zero bound now .. .
 DB 23h		;INC HL       ; 6tdiscard the loop count on R-stack
-DB 22h,0Ch,0FEh	;LD  (RP), HL ;16t
+DB 22h,0Ch,0FEh	;LD  (RPA), HL ;16t
 DB 03h		;INC BC       ; 6t\ IP slip over the re-loop-addr
 DB 03h		;INC BC       ; 6t
 DB 0C3h,4Fh,01h	;JP  NextStep ;10t loop is over
@@ -239,12 +239,12 @@ DB 0C3h,4Fh,01h	;JP  NextStep ;10t
 
                 $CODE   COMPO+2,'>R',TOR
 DB 0D1h		;POP DE       ;10t
-DB 2Ah,0Ch,0FEh	;LD  HL, (RP) ;16t
+DB 2Ah,0Ch,0FEh	;LD  HL, (RPA) ;16t
 DB 2Bh		;DEC HL       ; 6t
 DB 72h		;LD  (HL), D  ; 7t
 DB 2Bh		;DEC HL       ; 6t
 DB 73h		;LD  (HL), E  ; 7t
-DB 22h,0Ch,0FEh	;LD  (RP), HL ;16t
+DB 22h,0Ch,0FEh	;LD  (RPA), HL ;16t
 DB 0C3h,4Fh,01h	;JP  NextStep ;10t
 ;                    ;78t==(10MHz)7.8usec
 
@@ -254,7 +254,7 @@ DB 0C3h,4Fh,01h	;JP  NextStep ;10t
 ;               Copy top of return stack to the data stack.
 
                 $CODE   2,'R@',RAT
-DB 2Ah,0Ch,0FEh	;LD  HL, (RP) ;16t
+DB 2Ah,0Ch,0FEh	;LD  HL, (RPA) ;16t
 DB 5Eh		;LD  E, (HL)  ; 7t
 DB 23h		;INC HL       ; 6t
 DB 56h		;LD  D, (HL)  ; 7t
@@ -268,12 +268,12 @@ DB 0C3h,4Fh,01h	;JP  NextStep ;10t
 ;               Pop the return stack to the data stack.
 
                 $CODE   2,'R>',RFROM
-DB 2Ah,0Ch,0FEh	;LD  HL, (RP) ;16t
+DB 2Ah,0Ch,0FEh	;LD  HL, (RPA) ;16t
 DB 5Eh		;LD  E, (HL)  ; 7t
 DB 23h		;INC HL       ; 6t
 DB 56h		;LD  D, (HL)  ; 7t
 DB 23h		;INC HL       ; 6t
-DB 22h,0Ch,0FEh	;LD  (RP), HL ;16t
+DB 22h,0Ch,0FEh	;LD  (RPA), HL ;16t
 DB 0D5h		;PUSH DE      ;11t
 DB 0C3h,4Fh,01h	;JP  NextStep ;10t
 ;                    ;67t==(10MHz)5.7.usec
@@ -284,7 +284,7 @@ DB 0C3h,4Fh,01h	;JP  NextStep ;10t
 ;               Push the current RP to the data stack.
 
                 $CODE   3,'RP@',RPAT
-DB 2Ah,0Ch,0FEh	;LD  HL, (RP)
+DB 2Ah,0Ch,0FEh	;LD  HL, (RPA)
 DB 0E5h		;PUSH HL
 DB 0C3h,4Fh,01h	;JP  NextStep
 
@@ -295,7 +295,7 @@ DB 0C3h,4Fh,01h	;JP  NextStep
 
                 $CODE   COMPO+3,'RP!',RPSTO
 DB 0E1h		;POP HL       ;
-DB 22h,0Ch,0FEh	;LD  (RP), HL ;
+DB 22h,0Ch,0FEh	;LD  (RPA), HL ;
 DB 0C3h,4Fh,01h	;JP  NextStep ;
 
 

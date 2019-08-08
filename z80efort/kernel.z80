@@ -20,12 +20,12 @@ JP  NextStep ;10t    ;(10MHz)5.5usec (+2.5usec NextStep)
 ;               Process colon list.
 
 ;!                $CODE   COMPO+6,'doLIST',DOLST
-LD  HL, (RP) ;16t
+LD  HL, (RPA) ;16t
 DEC HL       ; 6t
 LD  (HL), B  ; 7t      \ end of r-push simulation
 DEC HL       ; 6t
 LD  (HL), C  ; 7t      \ end of r-push simulation
-LD  (RP), HL ;16t      \ IP is r-pushed (simulated)
+LD  (RPA), HL ;16t      \ IP is r-pushed (simulated)
 ;                    ;
 POP BC       ;10t
 JP  NextStep ;10t
@@ -38,12 +38,12 @@ JP  NextStep ;10t
 
 ;!                $CODE   4,'EXIT',EXIT
 
-LD  HL, (RP) ;16t
+LD  HL, (RPA) ;16t
 LD  C, (HL)  ; 7t
 INC HL       ; 6t
 LD  B, (HL)  ; 7t
 INC HL       ; 6t
-LD  (RP),HL  ;16t
+LD  (RPA),HL  ;16t
 JP  NextStep ;10t
 ;                    ;68t==6.8us
 
@@ -64,7 +64,7 @@ JP  (HL)      ; 4t
 ;                 r> r> dup if 1 - >r @ >r exit then drop cell+ >r ;
 
 ;!                $CODE   COMPO+4,'next',DONXT
-LD  HL, (RP) ;16t
+LD  HL, (RPA) ;16t
 LD  A, (HL)  ; 7t
 OR  A        ; 4t
 JR  NZ, DECLOW;12/7t a fast dec is ok, only failed every 255 time
@@ -75,7 +75,7 @@ OR  A        ; 4t
 JR  NZ, DECHILO;12/7t Hi-byte no-zero, it is also a re-loop case
                        ;zero bound now .. .
 INC HL       ; 6tdiscard the loop count on R-stack
-LD  (RP), HL ;16t
+LD  (RPA), HL ;16t
 INC BC       ; 6t\ IP slip over the re-loop-addr
 INC BC       ; 6t
 JP  NextStep ;10t loop is over
@@ -191,12 +191,12 @@ JP  NextStep ;10t
 
 ;!                $CODE   COMPO+2,'>R',TOR
 POP DE       ;10t
-LD  HL, (RP) ;16t
+LD  HL, (RPA) ;16t
 DEC HL       ; 6t
 LD  (HL), D  ; 7t
 DEC HL       ; 6t
 LD  (HL), E  ; 7t
-LD  (RP), HL ;16t
+LD  (RPA), HL ;16t
 JP  NextStep ;10t
 ;                    ;78t==(10MHz)7.8usec
 
@@ -206,7 +206,7 @@ JP  NextStep ;10t
 ;               Copy top of return stack to the data stack.
 
 ;!                $CODE   2,'R@',RAT
-LD  HL, (RP) ;16t
+LD  HL, (RPA) ;16t
 LD  E, (HL)  ; 7t
 INC HL       ; 6t
 LD  D, (HL)  ; 7t
@@ -220,12 +220,12 @@ JP  NextStep ;10t
 ;               Pop the return stack to the data stack.
 
 ;!                $CODE   2,'R>',RFROM
-LD  HL, (RP) ;16t
+LD  HL, (RPA) ;16t
 LD  E, (HL)  ; 7t
 INC HL       ; 6t
 LD  D, (HL)  ; 7t
 INC HL       ; 6t
-LD  (RP), HL ;16t
+LD  (RPA), HL ;16t
 PUSH DE      ;11t
 JP  NextStep ;10t
 ;                    ;67t==(10MHz)5.7.usec
@@ -236,7 +236,7 @@ JP  NextStep ;10t
 ;               Push the current RP to the data stack.
 
 ;!                $CODE   3,'RP@',RPAT
-LD  HL, (RP)
+LD  HL, (RPA)
 PUSH HL
 JP  NextStep
 
@@ -247,7 +247,7 @@ JP  NextStep
 
 ;!                $CODE   COMPO+3,'RP!',RPSTO
 POP HL       ;
-LD  (RP), HL ;
+LD  (RPA), HL ;
 JP  NextStep ;
 
 
