@@ -1,0 +1,300 @@
+.title Z80 eForth
+
+.list (me,meb)
+
+;PAGE 90,132		;90 lines/page, 132 char/line,
+
+;===============================================================
+;
+;       Z80 eForth 1.0 by Ken Chen,   April 10, 1991
+;
+;       This eForth system was developed and tested under Z80 HW.
+;
+;       The eForth Model was developed by Bill Muench and C. H. Ting.
+;
+;       The goal of this implementation is to build a eForth on my working
+;       environment.
+;
+;       Deviations from the original eForth Model are:
+;
+;             o All kernel words are assembled as DB statements.
+;             o Memory map is tailored to a ROM based system.
+;             o FORTH vocabulary pointer is a pair user variables.
+;             o Since 'NEXT' is used in FOR-NEXT, so 'NextStep' is used for
+;               Virtual Forth CPU 'NEXT'
+;             o BYE is deleted.
+;             o call, is chnaged for absolute calling ( vs 8086 model)
+;             o I/O: there is a Rx interrupt, recevie char to SiobRxQ,
+;                    SiobRxQ is an one page ring Q (pointer wrapping in the page)
+;                    Received is put to where SiobRxQin pointing, and increment
+;                    SiobRxQout is where system read char.
+;                    Tx is by polling to tx.
+;             o Registers assigment:
+;                 SP  --  SP
+;                 IP  --  BC
+;                 RP  --  Memory
+;                 UP  --  Memory
+;
+;
+;        To assemble this source file and generate a ROM image,
+;       type the following commands using MASM and LINK:
+;               >MASM efZ80;
+;               >LINK efZ80;
+;               >EXE2BIN efZ80.exe efZ80.com
+;       The resulting efZ80.com contains the binary image suitable
+;       for PROM programming.  The actual image is offset by 0000H
+;       bytes from the beginning of the .EXE file.  This image
+;       must be placed in a PROM from 0 to 1FFFH, and it uses a RAM
+;       chip from C000H to FFFFH.  If your system does not have
+;       this memory configuration, modify the memory pointers in
+;       the source file accordingly.  Places to be modified are
+;       marked by '******'.
+;
+;       Z80  is a slow processor.  Do not expect great performance
+;       of this implementation, considering that most words are in high
+;       level.  Your are encouraged to recode some of the high level words
+;       to optimize its performance.
+;
+;       Comparsion of F83 (indeirect threaded) to eForth Z80,
+;       eForth Z80 can run quit faster than F83 Z80 because:
+;
+;  eForth NextStep:
+;               LD  A, (BC); 7t
+;               INC BC     ; 6t
+;               LD  L, A   ; 4t
+;               LD  A, (BC); 7t
+;               INC BC     ; 6t
+;               LD  H, A   ; 4t
+;               JP  (HL)   ; 4t
+;                          ; 38t==(10MHz)3.8 usec.
+;
+;  eForth  doLIST:
+;               (NOP CALL doLIST == 21)
+;               LD  HL, (RP) ;16t
+;               DEC HL       ; 6t
+;               LD  (HL), B  ; 7t
+;               DEC HL       ; 6t
+;               LD  (HL), C  ; 7t
+;               LD  (RP), HL ;16t
+;               POP BC       ;10t
+;
+;               JP  NextStep ;10t
+;                            ;107t (10MHz==10.7usec)
+;                             (107+38=145)
+;
+;  eForth EXIT:
+;               LD  HL, (RP) ;16t
+;               LD  C, (HL)  ; 7t
+;               INC HL       ; 6t
+;               LD  B, (HL)  ; 7t
+;               INC HL       ; 6t
+;               LD  (RP),HL  ;16t
+;
+;               JP  NextStep ;10t
+;                            ;68t==6.8us
+;                            (68+38=108)
+;
+;
+;  F83 Z80:
+;       LABEL >NEXT A (BC) LD, BC INC, L A LD, A (BC) LD, BC INC, H A LD,
+;                       7        6       4        7         6       4
+;                   E (HL) LD, HL INC, D (HL) LD, DE HL EX, (HL) JP,
+;                       7        6        7          4        4     total=62t
+;       LABEL NEST
+;         HL RP ) LD,  HL DEC, (HL) B LD, HL DEC, (HL) C LD,
+;             16         6         7        6        7
+;         RP ) HL LD,  DE INC, C E LD, B D LD, >NEXT JP,
+;             16         6       4        4      10              ===>total=82
+;       CODE EXIT                                                (82+62=144)
+;          HL RP ) LD, C (HL) LD, HL INC, B (HL) LD, HL INC,
+;             16         7           6      7          6
+;          RP ) HL LD,   >NEXT JP,
+;             16           10                                     ==>total=68
+;                                                                 (68+62=130)
+;
+;                                 eForth      F83
+;  Summary: Code word overhead:     38         62
+;             :       overhead:    107+38=135  82+62=144
+;             ;       overhead:     68+38=106  68+62=130
+;  Conclusion:
+;    eForth Z80 is remarkable faster, especially when CODE defined (38/62 clock)
+;    ( most kernel primitives 35~70 clock)
+;
+;
+;  Note on improvement:
+;       To minmize the change from the original model, some speed and memory
+;       improvment is not put on this release but it is worth to enhance:
+;
+;    1. NOP CALL doLIST  -- it cause 4 bytes and 21 clocks.
+;              improvemnet:  use NOP RST 8 (doList at 0008H) may save 2 bytes
+;                            and reduce to 15 clocks
+;              related change: call, :  USER  CREATE
+;
+;    2. Top of stack may be put to DE register, many stack POP--PUSH may be
+;       reduced and cuase nomally ten more clock save.
+;              related change: most code-words and PICK, DEPTH .. .
+;
+;    3. Join NextStep to just behind doLIST and EXIT will cut a 'JP NextStep'
+;       and will save 10 clock each.
+;
+;    4. NextStep address may be put to IY (or IX) then
+;      'JP (IY)' use 2 bytes and 8 clocks (JP NextStep: 3 bytes and 10 clocks)
+;      a more important advantage is: revectoring IY (originally NextStep)
+;                  may easily patch a debuger in ROMed enivronment.
+;
+;      Thanks to FIG Forth, F83, eForth implemneters. Their efforts and
+;      open-minded contributions made all this work easy.
+;      Also thanks to my friend Cherng Chin who gave me many valuable
+;      suggestions and discussion.
+;
+;
+;       Direct your questions and contributions to:
+;
+;               Dr. C. H. Ting
+;               156 14th Avenue
+;               San Mateo, CA 94402
+;               (415) 571-7639
+;
+;       or:
+;               Ken Chen
+;               No. 20, Lane 2, Ann-Her Street
+;               Hsinchu, Taiwan, R.O.C.
+;               Tel: O) 035-782323 Internal prefix 011-883
+;                    H) 035-779567
+;===============================================================
+
+	.area	CODE(ABS)
+	.org	0x0
+
+.include "system.def"
+
+;; Initialize assembly variables
+
+_LINK   = 0                                     ;force a null link
+_NAME   = NAMEE                                 ;initialize name pointer
+_USER   = 4*CELLL                               ;first user variable offset
+
+	.area	DICT(ABS)
+	.org	NAMEE
+
+	.area	CODE(ABS)
+
+;; Define assembly macros
+
+;       Adjust an address to the next cell boundary.
+
+	.macro	$ALIGN
+        .even                                    ;;for 16bit systems
+        .endm
+
+;       Compile a code definition header.
+
+	.macro   $CODE,LEX,NAME,LABEL
+        $ALIGN                            ;;force to cell boundary
+LABEL:                                    ;;assembly label
+	.area	DICT(ABS)
+	. = . - ((((LEX & 0x1F) + 6)/CELLL) * CELLL)
+	_NAME = .
+        .dw       LABEL,_LINK              ;;token pointer and link
+	_LINK = .
+        .db      LEX
+	.ascii	NAME                  ;;name string
+	$ALIGN
+	. = _NAME
+	.area	CODE(ABS)
+        .endm
+
+;       Compile a colon definition header
+
+	.macro   $COLON,LEX,NAME,LABEL
+	$CODE	LEX,NAME,LABEL
+	nop
+	call	DOLST			;;CALL doLIST******
+        .endm
+
+;       Compile a user variable header.
+
+	.macro   $USER,LEX,NAME,LABEL
+        $CODE   LEX,NAME,LABEL
+	nop
+	call	DOLST			;;CALL doLIST******
+        .dw      DOUSE,_USER               ;;followed by doUSER and offset
+        _USER   = _USER+CELLL             ;;update user area offset
+        .endm
+
+;       Compile an inline string.
+
+	.macro  D$,FUNCT,STRNG
+        .dw      FUNCT                     ;;function
+        .db     2$-1$
+1$:
+	.ascii	STRNG                  ;;count byte and string
+2$:
+        $ALIGN
+        .endm
+
+
+;; Main entry points and COLD start data
+
+	.org     BM                                ;Power up location******
+
+.include "lowmem.z80"
+
+	.org     BM + 0x80         ;User variable initial values
+
+; COLD start moves the following to USER variables.
+; MUST BE IN SAME ORDER AS USER VARIABLES.
+
+	$ALIGN                                  ;align to cell boundary
+
+UZERO:          .dw      0,0,0,0       ;reserved
+                .dw      SPP             ;SP0
+                .dw      RPP             ;RP0
+                .dw      QRX             ;'?KEY
+                .dw      TXSTO           ;'EMIT
+                .dw      ACCEP           ;'EXPECT
+                .dw      KTAP            ;'TAP
+                .dw      TXSTO           ;'ECHO
+                .dw      DOTOK           ;'PROMPT
+                .dw      BASEE           ;BASE
+                .dw      0               ;tmp
+                .dw      0               ;SPAN
+                .dw      0               ;>IN
+                .dw      0               ;#TIB
+                .dw      TIBB            ;TIB
+                .dw      0               ;CSP
+                .dw      INTER           ;'EVAL
+                .dw      NUMBQ           ;'NUMBER
+                .dw      0               ;HLD
+                .dw      0               ;HANDLER
+                .dw      0               ;CONTEXT pointer
+		.rept	VOCSS
+                .dw      0		;vocabulary stack    ???
+		.endm
+                .dw      0               ;CURRENT pointer
+                .dw      0               ;vocabulary link pointer ???
+                .dw      0xC000          ;CP  for runing phase on RAM
+                .dw      0xDFFE          ;NP  for runing phase on RAM
+                .dw      LASTN           ;LAST
+                .dw      LASTN           ;FORTH   \ mullti-user ???
+                .dw      0               ;vocabulary link       ???
+ULAST:
+
+.include "coldstart.z80"
+
+.include "nextstep.z80"
+
+.include "kernel.z80"
+
+.include "initdev.z80"
+
+.include "portio.z80"
+
+.include "siorxtx.z80"
+
+.include "words.z80"
+
+LASTN           .equ     _NAME+4      ;last name address
+
+NTOP            .equ     0xDFFE       ;next available memory in name dictionary
+CTOP            .equ     0xC000       ;next available memory in code dictionary

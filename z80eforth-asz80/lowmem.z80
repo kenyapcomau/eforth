@@ -1,0 +1,5 @@
+JP COLDSTART	;Jump to cold start  100H
+.rept 120	;should be 122, but we'll match the binary for now
+NOP
+.endm
+JP COLDSTART	;if something's wrong, jump again.

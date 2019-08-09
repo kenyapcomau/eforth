@@ -1,0 +1,56 @@
+	.org	BM + 0x100
+
+DI
+;
+; move ROM version user data to 1st user RAM
+;
+LD C, #PIOAC		;PIOA
+LD A, 0xCF
+OUT (C), A
+LD A, 0
+OUT (C), A
+LD A, 0x17
+OUT (C), A
+LD A, 0xFF
+OUT (C), A
+;
+LD C, #PIOBC		;PIOB
+LD A, 0xCF
+OUT (C), A
+LD A, 0
+OUT (C), A
+LD A, 0x17
+OUT (C), A
+LD A, 0xFF
+OUT (C), A
+;
+LD C, #PIOAD
+LD A, 0x5B		;PIOA data: TEST ON, RED LED on .. .
+OUT (C), A
+;
+LD C, #PIOBD
+LD A, 0x17		;PIOB data: .. .
+OUT (C), A
+;
+; Set IM2
+IM 2
+;
+; init SP, RP, UP
+;
+LD HL, #SPP
+LD SP, HL		; INIT SP
+;
+LD HL, #RPP		; init to RPP
+LD (RPA), HL		; simulated R-stack reg at RPA
+;
+LD HL, #UPP		; use the initial USER VARIABLE area
+LD (UPA), HL		; user area at UPA
+;
+LD BC, #ERROR		;jmp 0 cold-start whenever R-stack underflow-used
+; this is supposed not impossible to be happen
+
+LD C, #PIOAD
+LD A, 0xBB		;PIOA data: GRN LED only .
+OUT (C), A
+
+JP COLD

@@ -1,0 +1,73 @@
+;   ?RX         ( -- c T | F )
+;               Return input character and true, or a false if no input.
+
+                $CODE   3,'?RX',QRX
+
+LD HL, #SiobRxQout	;16t
+LD A, (HL)		; 7t
+LD HL, #SiobRxQin	;16t
+CP (HL)			; 7t
+JR NZ,$1		; 7t/12t (NZ jump=12t) ptr <>, get the char
+LD HL, 0		;10t False flag
+PUSH HL			;11t
+JP NextStep		;10t ==> False Timing:84t==(10MHz)8.4usec
+;
+$1:
+LD E, (HL)		; 7t get this ptr LOW
+INC HL			; 6t
+LD D, (HL)		; 7t get this ptr HI
+EX DE,HL		; 4t let HL point the char
+LD E, (HL)		; 7t get the char
+LD D, 0			; 7t high byte =0
+PUSH DE			;11t
+INC L			; 4t ptr+1, a 256 byte Ring queue
+LD (SiobRxQin),HL	;16t
+LD HL,0xFFFF		;10t
+PUSH HL			;11t
+JP NextStep		;10t ==> TRUE case: 100t(10MHz)10.0usec
+
+
+;
+;   TX!         ( c -- )
+;               Send character c to the output device.
+
+                $COLON  3,'TX!',TXSTO
+
+TX1:             .dw      DOLIT, 0, DOLIT, 0x1B, PCSTO	; BEGIN 0 $1B PC!
+                .dw      DOLIT, 0x1B, PCAT		;         $1B PC@
+                .dw      DOLIT, 4, ANDD		;       4 AND
+                .dw      QBRAN, TX1			; UNTIL
+                .dw      DOLIT, 0x1A, PCSTO, EXIT	; $1A PC! ;
+
+; for timing: interrupt will get vector, push pc, jump to service .. .
+;  a rough estimate:           7t   +       11t  +  10t
+
+SiobRxBAvl:
+PUSH AF			;11t ;save
+PUSH HL			;11t ;save
+IN A, (0x1a)		;11t ;SIOB data reg
+LD HL, (SiobRxQout)	;16t
+LD (HL), A		; 7t ; put to ring queue
+INC L			; 4t ; 256 byte ring queue
+LD (SiobRxQout),HL	;16t ;restore
+POP HL			;10t ;restore
+POP AF			;10t ;restore
+EI			; 4t
+RETI			;14t
+;114t + (entering 28t) => 142t==(10MHz)14.2usec
+
+
+
+SiobSRxCond:		; SIOB Special Rx Condition, reset only
+PUSH AF			; NOTE: a flag may be set for discard a process
+PUSH BC
+LD A, 4
+LD C, 0x1B
+OUT (C), A		; reset
+LD A, 0xFB
+LD C, 0x1C
+OUT (C), A
+POP BC
+POP AF
+EI
+RETI
