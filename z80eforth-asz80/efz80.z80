@@ -1,8 +1,6 @@
-.title Z80 eForth
+	.title Z80 eForth
 
-.list (me,meb)
-
-;PAGE 90,132		;90 lines/page, 132 char/line,
+;	PAGE 90,132		;90 lines/page, 132 char/line,
 
 ;===============================================================
 ;
@@ -60,38 +58,38 @@
 ;
 ;  eForth NextStep:
 ;               LD  A, (BC); 7t
-;               INC BC     ; 6t
-;               LD  L, A   ; 4t
+;               INC BC	; 6t
+;               LD  L, A	; 4t
 ;               LD  A, (BC); 7t
-;               INC BC     ; 6t
-;               LD  H, A   ; 4t
-;               JP  (HL)   ; 4t
-;                          ; 38t==(10MHz)3.8 usec.
+;               INC BC	; 6t
+;               LD  H, A	; 4t
+;               JP  (HL)	; 4t
+;	; 38t==(10MHz)3.8 usec.
 ;
 ;  eForth  doLIST:
 ;               (NOP CALL doLIST == 21)
-;               LD  HL, (RP) ;16t
-;               DEC HL       ; 6t
-;               LD  (HL), B  ; 7t
-;               DEC HL       ; 6t
-;               LD  (HL), C  ; 7t
-;               LD  (RP), HL ;16t
-;               POP BC       ;10t
+;               LD  HL, (RP)	;16t
+;               DEC HL	; 6t
+;               LD  (HL), B	; 7t
+;               DEC HL	; 6t
+;               LD  (HL), C	; 7t
+;               LD  (RP), HL	;16t
+;               POP BC	;10t
 ;
-;               JP  NextStep ;10t
-;                            ;107t (10MHz==10.7usec)
+;               JP  NextStep	;10t
+;	;107t (10MHz==10.7usec)
 ;                             (107+38=145)
 ;
 ;  eForth EXIT:
-;               LD  HL, (RP) ;16t
-;               LD  C, (HL)  ; 7t
-;               INC HL       ; 6t
-;               LD  B, (HL)  ; 7t
-;               INC HL       ; 6t
-;               LD  (RP),HL  ;16t
+;               LD  HL, (RP)	;16t
+;               LD  C, (HL)	; 7t
+;               INC HL	; 6t
+;               LD  B, (HL)	; 7t
+;               INC HL	; 6t
+;               LD  (RP),HL	;16t
 ;
-;               JP  NextStep ;10t
-;                            ;68t==6.8us
+;               JP  NextStep	;10t
+;	;68t==6.8us
 ;                            (68+38=108)
 ;
 ;
@@ -115,7 +113,7 @@
 ;                                 eForth      F83
 ;  Summary: Code word overhead:     38         62
 ;             :       overhead:    107+38=135  82+62=144
-;             ;       overhead:     68+38=106  68+62=130
+;	;       overhead:     68+38=106  68+62=130
 ;  Conclusion:
 ;    eForth Z80 is remarkable faster, especially when CODE defined (38/62 clock)
 ;    ( most kernel primitives 35~70 clock)
@@ -163,18 +161,18 @@
 ;                    H) 035-779567
 ;===============================================================
 
+.include "system.def"
+
 	.area	CODE(ABS)
 	.org	0x0
 
-.include "system.def"
-
 ;; Initialize assembly variables
 
-_LINK   = 0                                     ;force a null link
-_NAME   = NAMEE                                 ;initialize name pointer
-_USER   = 4*CELLL                               ;first user variable offset
+	_LINK	= 0				;force a null link
+	_NAME	= NAMEE				;initialize name pointer
+	_USER	= 4*CELLL			;first user variable offset
 
-	.area	DICT(ABS)
+	.area	DICT(ABS)			;dictionary goes downwards
 	.org	NAMEE
 
 	.area	CODE(ABS)
@@ -184,100 +182,100 @@ _USER   = 4*CELLL                               ;first user variable offset
 ;       Adjust an address to the next cell boundary.
 
 	.macro	$ALIGN
-        .even                                    ;;for 16bit systems
-        .endm
+	.even			;;for 16bit systems
+	.endm
 
-;       Compile a code definition header.
+;	Compile a code definition header.
 
-	.macro   $CODE,LEX,NAME,LABEL
-        $ALIGN                            ;;force to cell boundary
-LABEL:                                    ;;assembly label
-	.area	DICT(ABS)
+	.macro	$CODE,LEX,NAME,LABEL
+	$ALIGN			;;force to cell boundary
+LABEL:				;;assembly label
+	.area	DICT(ABS)	;;switch to dictionary
 	. = . - ((((LEX & 0x1F) + 6)/CELLL) * CELLL)
 	_NAME = .
-        .dw       LABEL,_LINK              ;;token pointer and link
+	.dw	LABEL,_LINK	;;token pointer and link
 	_LINK = .
-        .db      LEX
-	.ascii	NAME                  ;;name string
+	.db	LEX
+	.ascii	NAME		;;name string
 	$ALIGN
 	. = _NAME
-	.area	CODE(ABS)
-        .endm
+	.area	CODE(ABS)	;;switch back to code
+	.endm
 
-;       Compile a colon definition header
+;	Compile a colon definition header
 
-	.macro   $COLON,LEX,NAME,LABEL
+	.macro	$COLON,LEX,NAME,LABEL
 	$CODE	LEX,NAME,LABEL
 	nop
-	call	DOLST			;;CALL doLIST******
-        .endm
+	call	DOLST		;;CALL doLIST
+	.endm
 
-;       Compile a user variable header.
+;	Compile a user variable header.
 
-	.macro   $USER,LEX,NAME,LABEL
-        $CODE   LEX,NAME,LABEL
+	.macro	$USER,LEX,NAME,LABEL
+	$CODE	LEX,NAME,LABEL
 	nop
-	call	DOLST			;;CALL doLIST******
-        .dw      DOUSE,_USER               ;;followed by doUSER and offset
-        _USER   = _USER+CELLL             ;;update user area offset
-        .endm
+	call	DOLST		;;CALL doLIST
+	.dw	DOUSE,_USER	;;followed by doUSER and offset
+	_USER = _USER+CELLL	;;update user area offset
+	.endm
 
-;       Compile an inline string.
+;	Compile an inline string.
 
-	.macro  D$,FUNCT,STRNG
-        .dw      FUNCT                     ;;function
-        .db     2$-1$
-1$:
-	.ascii	STRNG                  ;;count byte and string
-2$:
-        $ALIGN
-        .endm
+	.macro	D$,FUNCT,STRNG,?begin,?end
+	.dw	FUNCT		;;function
+	.db	end-begin
+begin:				;;local label
+	.ascii	STRNG		;;count byte and string
+end:				;;local label
+	$ALIGN
+	.endm
 
 
 ;; Main entry points and COLD start data
 
-	.org     BM                                ;Power up location******
+	.org	BM		;Power up location******
 
 .include "lowmem.z80"
 
-	.org     BM + 0x80         ;User variable initial values
+	.org	BM + 0x80	;User variable initial values
 
 ; COLD start moves the following to USER variables.
 ; MUST BE IN SAME ORDER AS USER VARIABLES.
 
-	$ALIGN                                  ;align to cell boundary
+	$ALIGN			;align to cell boundary
 
-UZERO:          .dw      0,0,0,0       ;reserved
-                .dw      SPP             ;SP0
-                .dw      RPP             ;RP0
-                .dw      QRX             ;'?KEY
-                .dw      TXSTO           ;'EMIT
-                .dw      ACCEP           ;'EXPECT
-                .dw      KTAP            ;'TAP
-                .dw      TXSTO           ;'ECHO
-                .dw      DOTOK           ;'PROMPT
-                .dw      BASEE           ;BASE
-                .dw      0               ;tmp
-                .dw      0               ;SPAN
-                .dw      0               ;>IN
-                .dw      0               ;#TIB
-                .dw      TIBB            ;TIB
-                .dw      0               ;CSP
-                .dw      INTER           ;'EVAL
-                .dw      NUMBQ           ;'NUMBER
-                .dw      0               ;HLD
-                .dw      0               ;HANDLER
-                .dw      0               ;CONTEXT pointer
-		.rept	VOCSS
-                .dw      0		;vocabulary stack    ???
-		.endm
-                .dw      0               ;CURRENT pointer
-                .dw      0               ;vocabulary link pointer ???
-                .dw      0xC000          ;CP  for runing phase on RAM
-                .dw      0xDFFE          ;NP  for runing phase on RAM
-                .dw      LASTN           ;LAST
-                .dw      LASTN           ;FORTH   \ mullti-user ???
-                .dw      0               ;vocabulary link       ???
+UZERO:	.dw	 0,0,0,0	;reserved
+	.dw	 SPP		;SP0
+	.dw	 RPP		;RP0
+	.dw	 QRX		;'?KEY
+	.dw	 TXSTO		;'EMIT
+	.dw	 ACCEP		;'EXPECT
+	.dw	 KTAP		;'TAP
+	.dw	 TXSTO		;'ECHO
+	.dw	 DOTOK		;'PROMPT
+	.dw	 BASEE		;BASE
+	.dw	 0		;tmp
+	.dw	 0		;SPAN
+	.dw	 0		;>IN
+	.dw	 0		;#TIB
+	.dw	 TIBB		;TIB
+	.dw	 0		;CSP
+	.dw	 INTER		;'EVAL
+	.dw	 NUMBQ		;'NUMBER
+	.dw	 0		;HLD
+	.dw	 0		;HANDLER
+	.dw	 0		;CONTEXT pointer
+	.rept	VOCSS
+	.dw	 0		;vocabulary stack ???
+	.endm
+	.dw	 0		;CURRENT pointer
+	.dw	 0		;vocabulary link pointer ???
+	.dw	 0xC000		;CP for runing phase on RAM
+	.dw	 0xDFFE		;NP for runing phase on RAM
+	.dw	 LASTN		;LAST
+	.dw	 LASTN		;FORTH	\ mullti-user ???
+	.dw	 0		;vocabulary link ???
 ULAST:
 
 .include "coldstart.z80"
@@ -294,7 +292,7 @@ ULAST:
 
 .include "words.z80"
 
-LASTN           .equ     _NAME+4      ;last name address
+LASTN	.equ	 _NAME+4	;last name address
 
-NTOP            .equ     0xDFFE       ;next available memory in name dictionary
-CTOP            .equ     0xC000       ;next available memory in code dictionary
+;NTOP	.equ	 0xDFFE		;next available memory in name dictionary
+;CTOP	.equ	 0xC000		;next available memory in code dictionary

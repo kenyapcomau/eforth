@@ -1,102 +1,99 @@
-;
 ;; Device dependent I/O
-;
 
-;   !IO         ( -- )
-;               Initialize the serial I/O devices.
+;   	!IO		( -- )
+;	Initialize the devices.
 
-                $CODE   3,'!IO',STOIO ;
+	$CODE	3,'!IO',STOIO ;
 
-TST:			; init SIO interrupt vector
-EXX			; 4t
-LD A, 0x0FE
-LD I, A
-LD HL, #SiobRxBAvl
-LD (RxBAvlVec), HL	; interrupt vector cell
-LD HL, #SiobSRxCond
-LD (SRxCondVec), HL	; interupt vector cell
+	EXX			;4t
+	LD A, 0x0FE
+	LD I, A
+	LD HL, #SiobRxBAvl
+	LD (RxBAvlVec), HL	;interrupt vector cell
+	LD HL, #SiobSRxCond
+	LD (SRxCondVec), HL	;interupt vector cell
 ;
-;; init SIOB Rx Q ptr
+; init SIOB Rx Q ptr
 ;
-LD HL, #SiobRxQ
-LD (SiobRxQin), HL
-LD (SiobRxQout), HL
+	LD HL, #SiobRxQ
+	LD (SiobRxQin), HL
+	LD (SiobRxQout), HL
 ;
-;; init CTC
+; init CTC
 ;
-LD C, #CTC
-LD A, 0x07
-OUT (C), A
-LD A, 0x04
-OUT (C), A
+	LD C, #CTC
+	LD A, 0x07
+	OUT (C), A
+	LD A, 0x04
+	OUT (C), A
 ;
-;; init PIO
+; init PIO
 ;
-LD C, #PIOAC
-LD A, 0xCF
-OUT (C), A
-LD A, 0
-OUT (C), A
-LD A, 0x17
-OUT (C), A
-LD A, 0x0FF
-OUT (C), A
+	LD C, #PIOAC
+	LD A, 0xCF
+	OUT (C), A
+	LD A, 0
+	OUT (C), A
+	LD A, 0x17
+	OUT (C), A
+	LD A, 0x0FF
+	OUT (C), A
 ;
-LD C, #PIOBC
-LD A, 0x0CF
-OUT (C), A
-LD A, 0
-OUT (C), A
-LD A, 0x17
-OUT (C), A
-LD A, 0x0FF
-OUT (C), A
+	LD C, #PIOBC
+	LD A, 0x0CF
+	OUT (C), A
+	LD A, 0
+	OUT (C), A
+	LD A, 0x17
+	OUT (C), A
+	LD A, 0x0FF
+	OUT (C), A
 ;
-LD C, #PIOAD
-LD A, 0x3B		;PIOA data: TST & Green LED
-OUT (C), A
-;HALT			; one of testing poing during porting !!!!!
-LD C, #PIOBD
-LD A, 0x17 		;PIOB data: .. .
-OUT (C), A
+	LD C, #PIOAD
+	LD A, 0x3B		;PIOA data: TST & Green LED
+	OUT (C), A
+;	HALT			;one of testing poing during porting !!!!!
+	LD C, #PIOBD
+	LD A, 0x17		;PIOB data: .. .
+	OUT (C), A
 ;
-;; init SIO
+; init SIO
 ;
-LD C, #SIOBC
-LD A, 0x18
-OUT (C), A
-LD A, 0x01
-OUT (C), A
-LD A, 0x1D
-OUT (C), A
+	LD C, #SIOBC
+	LD A, 0x18
+	OUT (C), A
+	LD A, 0x01
+	OUT (C), A
+	LD A, 0x1D
+	OUT (C), A
 ;
-LD A, 0x02
-OUT (C), A
-LD A, 0x00
-OUT (C), A
+	LD A, 0x02
+	OUT (C), A
+	LD A, 0x00
+	OUT (C), A
 ;
-LD A, 0x03
-OUT (C), A
-LD A, 0xC1
-OUT (C), A
+	LD A, 0x03
+	OUT (C), A
+	LD A, 0xC1
+	OUT (C), A
 ;
-LD A, 0x04
-OUT (C), A
-LD A, 0x44
-OUT (C), A
-LD A, 0x05
-OUT (C), A
+	LD A, 0x04
+	OUT (C), A
+	LD A, 0x44
+	OUT (C), A
+	LD A, 0x05
+	OUT (C), A
 ;
-LD A, 0x68
-OUT (C), A
+	LD A, 0x68
+	OUT (C), A
 ;
-EI
-NOP
-NOP
-NOP
-;LD  C, #PIOBC
-;LD  A, 0x01		;off-hook
-;OUT (C), A
-;HALT			; !!!!!
-EXX			; 4t
-JP NextStep
+	EI
+	NOP
+	NOP
+	NOP
+;	LD  C, #PIOBC
+;	LD  A, 0x01		;off-hook
+;	OUT (C), A
+;	HALT			;!!!!!
+	EXX			;4t
+	JP NextStep

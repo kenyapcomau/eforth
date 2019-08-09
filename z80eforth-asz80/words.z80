@@ -1,1662 +1,1657 @@
-; Forth words
+;; Forth words
 
-; High level code replaced by low level code
+;	High level code replaced by low level code
 
-;;  UM/MOD      ( dl dh u -- ur uq )
-;;;               Unsigned divide of a double by a single. Return mod and quotient.
+;	UM/MOD	( dl dh u -- ur uq )
+; Unsigned divide of a double by a single. Return mod and quotient.
 ; tested ok!!!. but not used for minimize the change about original model
-;                $CODE   6,'UM/MOD',UMMOD
-;DB  60h                ;       LD  H, B
-;DB  69h                ;       LD  L, C
-;DB 0C1h                ;       POP BC
-;DB 0D1h                ;       POP DE
-;DB 0E3h                ;       EX  (SP), HL
-;DB 0EBh                ;       EX  DE, HL
-;DB  7Dh                ;       LD  A, L
-;DB  91h                ;       SUB C
-;DB  7Ch                ;       LD  A, H
-;DB  98h                ;       SBC A, B
-;DB  30h, 19h           ;       JR  NC, USBAD
-;DB  7Ch                ;       LD  A, H
-;DB  65h                ;       LD  H, L
-;DB  6Ah                ;       LD  L, D
-;DB  16h, 08h           ;       LD  D, 8
-;DB 0D5h                ;       PUSH DE
-;DB 0CDh
-;.dw USLA                ;       CALL USLA
-;DB 0D1h                ;       POP  DE
-;DB 0E5h                ;       PUSH HL
-;DB  6Bh                ;       LD  L,E
-;DB 0CDh
-;.dw USLA                ;       CALL USLA
-;DB  57h                ;       LD  D, A
-;DB  5Ch                ;       LD  E, H
-;DB 0C1h                ;       POP BC
-;DB  61h                ;       LD  H, C
-;DB 0C1h                ;       POP BC
-;DB 0D5h                ;       PUSH DE
-;DB 0E5h                ;       PUSH HL
-;DB 0C3h                ;
-;.dw NextStep            ;       JP   NextStep
-;                       ;
-;DB 0C1h                ;USBAD: POP BC
-;DB  21h,0FFh,0FFh      ;       LD  HL, 0FFFFh
-;DB 0E5h                ;       PUSH HL
-;DB 0E5h                ;       PUSH HL
-;DB 0C3h                ;
-;.dw NextStep            ;       JP  NextStep
-;                       ;
-;DB  5Fh                ;USLO:  LD  E, A
-;DB  7Ch                ;       LD  A, H
-;DB  91h                ;       SUB C
-;DB  67h                ;       LD  H, A
-;DB  7Bh                ;       LD  A, E
-;DB  98h                ;       SBC A, B
-;DB  30h, 10h           ;       JR  NC, THEN1
-;DB  7Ch                ;       LD  A, H
-;DB  81h                ;       ADD A, C
-;DB  67h                ;       LD  H, A
-;DB  7Bh                ;       LD  A, E
-;DB  15h                ;       DEC D
-;DB 0C8h                ;       RET Z
-;                       ;
+;	$CODE	6,'UM/MOD',UMMOD
+;	LD H, B
+;	LD L, C
+;	POP BC
+;	POP DE
+;	EX (SP), HL
+;	EX DE, HL
+;	LD A, L
+;	SUB C
+;	LD A, H
+;	SBC A, B
+;	JR NC, USBAD
+;	LD A, H
+;	LD H, L
+;	LD L, D
+;	LD D, 8
+;	PUSH DE
+;	CALL USLA
+;	POP DE
+;	PUSH HL
+;	LD L,E
+;	CALL USLA
+;	LD D, A
+;	LD E, H
+;	POP BC
+;	LD H, C
+;	POP BC
+;	PUSH DE
+;	PUSH HL
+;
+;	JP  NextStep
+;
+;USBAD: POP BC
+;	LD HL, 0FFFFh
+;	PUSH HL
+;	PUSH HL
+;
+;	JP NextStep
+;
+;USLO:	LD  E, A
+;	LD A, H
+;	SUB C
+;	LD H, A
+;	LD A, E
+;	SBC A, B
+;	JR NC, THEN1
+;	LD A, H
+;	ADD A, C
+;	LD H, A
+;	LD A, E
+;	DEC D
+;	RET Z
+;
 ;USLA:
-;DB  29h                ;USLA:  ADD HL, HL
-;DB  17h                ;       RLA
-;DB  30h,0EEh           ;       JR  NC, USLO
-;DB  5Fh                ;       LD  E, A
-;DB  7Ch                ;       LD  A, H
-;DB  91h                ;       SUB C
-;DB  67h                ;       LD  H, A
-;DB  7Bh                ;       LD  A, E
-;DB  98h                ;       SBC A, B
-;DB  2Ch                ;THEN1: INC L
-;DB  15h                ;       DEC D
-;DB  20h,0F2h           ;       JR  NZ, USLA
-;DB 0C9h                ;       RET
+;USLA: ADD HL, HL
+;	RLA
+;	JR NC, USLO
+;	LD E, A
+;	LD A, H
+;	SUB C
+;	LD H, A
+;	LD A, E
+;	SBC A, B
+;THEN1: INC L
+;	DEC D
+;	JR NZ, USLA
+;	RET
 
 
 ;; System and user variables
 
-;   doVAR       ( -- a )
-;               Run time routine for VARIABLE and CREATE.
+;   doVAR	( -- a )
+;	Run time routine for VARIABLE and CREATE.
 
-                $COLON  COMPO+5,'doVAR',DOVAR
-                .dw      RFROM,EXIT
+	$COLON	COMPO+5,'doVAR',DOVAR
+	.dw	RFROM,EXIT
 
-;   UP          ( -- a )
-;               Pointer to the user area.
+;   UP		( -- a )
+;	Pointer to the user area.
 
-                $COLON  2,'UP',UP
-                .dw      DOVAR
-                .dw      UPP
+	$COLON	2,'UP',UP
+	.dw	DOVAR
+	.dw	UPP
 
-;   doUSER      ( -- a )
-;               Run time routine for user variables.
+;   doUSER	( -- a )
+;	Run time routine for user variables.
 
-                $COLON  COMPO+6,'doUSER',DOUSE
-                .dw      RFROM,AT,UP,AT,PLUS,EXIT
+	$COLON	COMPO+6,'doUSER',DOUSE
+	.dw	RFROM,AT,UP,AT,PLUS,EXIT
 
-;   SP0         ( -- a )
-;               Pointer to bottom of the data stack.
+;   SP0		( -- a )
+;	Pointer to bottom of the data stack.
 
-                $USER   3,'SP0',SZERO
+	$USER	3,'SP0',SZERO
 
-;   RP0         ( -- a )
-;               Pointer to bottom of the return stack.
+;   RP0		( -- a )
+;	Pointer to bottom of the return stack.
 
-                $USER   3,'RP0',RZERO
+	$USER	3,'RP0',RZERO
 
-;   '?KEY       ( -- a )
-;               Execution vector of ?KEY.
+;   '?KEY	( -- a )
+;	Execution vector of ?KEY.
 
-                $USER   5,"'?KEY",TQKEY
+	$USER	5,"'?KEY",TQKEY
 
-;   'EMIT       ( -- a )
-;               Execution vector of EMIT.
+;   'EMIT	( -- a )
+;	Execution vector of EMIT.
 
-                $USER   5,"'EMIT",TEMIT
+	$USER	5,"'EMIT",TEMIT
 
-;   'EXPECT     ( -- a )
-;               Execution vector of EXPECT.
+;   'EXPECT	( -- a )
+;	Execution vector of EXPECT.
 
-                $USER   7,"'EXPECT",TEXPE
+	$USER   7,"'EXPECT",TEXPE
 
-;   'TAP        ( -- a )
-;               Execution vector of TAP.
+;   'TAP	( -- a )
+;	Execution vector of TAP.
 
-                $USER   4,"'TAP",TTAP
+	$USER	4,"'TAP",TTAP
 
-;   'ECHO       ( -- a )
-;               Execution vector of ECHO.
+;   'ECHO	( -- a )
+;	Execution vector of ECHO.
 
-                $USER   5,"'ECHO",TECHO
+	$USER	5,"'ECHO",TECHO
 
-;   'PROMPT     ( -- a )
-;               Execution vector of PROMPT.
+;   'PROMPT	( -- a )
+;	Execution vector of PROMPT.
 
-                $USER   7,"'PROMPT",TPROM
+	$USER	7,"'PROMPT",TPROM
 
-;   BASE        ( -- a )
-;               Storage of the radix base for numeric I/O.
+;   BASE	( -- a )
+;	Storage of the radix base for numeric I/O.
 
-                $USER   4,'BASE',BASE
+	$USER	4,'BASE',BASE
 
-;   tmp         ( -- a )
-;               A temporary storage location used in parse and find.
+;   tmp		( -- a )
+;	A temporary storage location used in parse and find.
 
-                $USER   COMPO+3,'tmp',TEMP
+	$USER	COMPO+3,'tmp',TEMP
 
-;   SPAN        ( -- a )
-;               Hold character count received by EXPECT.
+;   SPAN	( -- a )
+;	Hold character count received by EXPECT.
 
-                $USER   4,'SPAN',SPAN
+	$USER	4,'SPAN',SPAN
 
-;   >IN         ( -- a )
-;               Hold the character pointer while parsing input stream.
+;   >IN		( -- a )
+;	Hold the character pointer while parsing input stream.
 
-                $USER   3,'>IN',INN
+	$USER	3,'>IN',INN
 
-;   #TIB        ( -- a )
-;               Hold the current count and address of the terminal input buffer.
+;   #TIB	( -- a )
+;	Hold the current count and address of the terminal input buffer.
 
-                $USER   4,'#TIB',NTIB
-                _USER = _USER+CELLL
+	$USER	4,'#TIB',NTIB
+	_USER = _USER+CELLL
 
-;   CSP         ( -- a )
-;               Hold the stack pointer for error checking.
+;   CSP		( -- a )
+;	Hold the stack pointer for error checking.
 
-                $USER   3,'CSP',CSP
+	$USER	3,'CSP',CSP
 
-;   'EVAL       ( -- a )
-;               Execution vector of EVAL.
+;   'EVAL	( -- a )
+;	Execution vector of EVAL.
 
-                $USER   5,"'EVAL",TEVAL
+	$USER	5,"'EVAL",TEVAL
 
-;   'NUMBER     ( -- a )
-;               Execution vector of NUMBER?.
+;   'NUMBER	( -- a )
+;	Execution vector of NUMBER?.
 
-                $USER   7,"'NUMBER",TNUMB
+	$USER	7,"'NUMBER",TNUMB
 
-;   HLD         ( -- a )
-;               Hold a pointer in building a numeric output string.
+;   HLD		( -- a )
+;	Hold a pointer in building a numeric output string.
 
-                $USER   3,'HLD',HLD
+	$USER	3,'HLD',HLD
 
-;   HANDLER     ( -- a )
-;               Hold the return stack pointer for error handling.
+;   HANDLER	( -- a )
+;	Hold the return stack pointer for error handling.
 
-                $USER   7,'HANDLER',HANDL
+	$USER	7,'HANDLER',HANDL
 
-;   CONTEXT     ( -- a )
-;               A area to specify vocabulary search order.
+;   CONTEXT	( -- a )
+;	A area to specify vocabulary search order.
 
-                $USER   7,'CONTEXT',CNTXT
-                _USER = _USER+VOCSS*CELLL       ;vocabulary stack
+	$USER	7,'CONTEXT',CNTXT
+	_USER = _USER+VOCSS*CELLL	;vocabulary stack
 
-;   CURRENT     ( -- a )
-;               Point to the vocabulary to be extended.
+;   CURRENT	( -- a )
+;	Point to the vocabulary to be extended.
 
-                $USER   7,'CURRENT',CRRNT
-                _USER = _USER+CELLL             ;vocabulary link pointer
+	$USER	7,'CURRENT',CRRNT
+	_USER = _USER+CELLL		;vocabulary link pointer
 
-;   CP          ( -- a )
-;               Point to the top of the code dictionary.
+;   CP		( -- a )
+;	Point to the top of the code dictionary.
 
-                $USER   2,'CP',CP
+	$USER	2,'CP',CP
 
-;   NP          ( -- a )
-;               Point to the bottom of the name dictionary.
+;   NP		( -- a )
+;	Point to the bottom of the name dictionary.
 
-                $USER   2,'NP',NP
+	$USER	2,'NP',NP
 
-;   LAST        ( -- a )
-;               Point to the last name in the name dictionary.
+;   LAST	( -- a )
+;	Point to the last name in the name dictionary.
 
-                $USER   4,'LAST',LAST
+	$USER	4,'LAST',LAST
 
-;   forth       ( -- a )
-;               Point to the last name in the name dictionary.
+;   forth	( -- a )
+;	Point to the last name in the name dictionary.
 
-                $USER   5,'forth',VFRTH
+	$USER	5,'forth',VFRTH
 
 ;; Common functions
 
-;   FORTH       ( -- )
-;               Make FORTH the context vocabulary.
+;   FORTH	( -- )
+;	Make FORTH the context vocabulary.
 
-                $COLON  5,'FORTH',FORTH
-                .dw      VFRTH,CNTXT,STORE,EXIT
+	$COLON	5,'FORTH',FORTH
+	.dw	VFRTH,CNTXT,STORE,EXIT
 
-;   ?DUP        ( w -- w w | 0 )
-;               Dup tos if its is not zero.
+;   ?DUP	( w -- w w | 0 )
+;	Dup tos if its is not zero.
 
-                $COLON  4,'?DUP',QDUP
-                .dw      DUPP
-                .dw      QBRAN,QDUP1
-                .dw      DUPP
-QDUP1:          .dw      EXIT
+	$COLON	4,'?DUP',QDUP
+	.dw	DUPP
+	.dw	QBRAN,QDUP1
+	.dw	DUPP
+QDUP1:	.dw	EXIT
 
-;   ROT         ( w1 w2 w3 -- w2 w3 w1 )
-;               Rot 3rd item to top.
+;   ROT		( w1 w2 w3 -- w2 w3 w1 )
+;	Rot 3rd item to top.
 
-                $COLON  3,'ROT',ROT
-                .dw      TOR,SWAP,RFROM,SWAP,EXIT
+	$COLON	3,'ROT',ROT
+	.dw	TOR,SWAP,RFROM,SWAP,EXIT
 
-;   2DROP       ( w w -- )
-;               Discard two items on stack.
+;   2DROP	( w w -- )
+;	Discard two items on stack.
 
-                $COLON  5,'2DROP',DDROP
-                .dw      DROP,DROP,EXIT
+	$COLON	5,'2DROP',DDROP
+	.dw	DROP,DROP,EXIT
 
-;   2DUP        ( w1 w2 -- w1 w2 w1 w2 )
-;               Duplicate top two items.
+;   2DUP	( w1 w2 -- w1 w2 w1 w2 )
+;	Duplicate top two items.
 
-                $COLON  4,'2DUP',DDUP
-                .dw      OVER,OVER,EXIT
+	$COLON	4,'2DUP',DDUP
+	.dw	OVER,OVER,EXIT
 
-;   +           ( w w -- sum )
-;               Add top two items.
+;   +		( w w -- sum )
+;	Add top two items.
 
-                $COLON  1,'+',PLUS
-                .dw      UPLUS,DROP,EXIT
+	$COLON	1,'+',PLUS
+	.dw	UPLUS,DROP,EXIT
 
-;   D+          ( d d -- d )
-;               Double addition, as an example using UM+.
+;   D+		( d d -- d )
+;	Double addition, as an example using UM+.
 ;
-;               $COLON  2,'D+',DPLUS
-;               .dw      TOR,SWAP,TOR,UPLUS
-;               .dw      RFROM,RFROM,PLUS,PLUS,EXIT
+;	$COLON	2,'D+',DPLUS
+;	.dw	TOR,SWAP,TOR,UPLUS
+;	.dw	RFROM,RFROM,PLUS,PLUS,EXIT
 
-;   NOT         ( w -- w )
-;               One's complement of tos.
+;   NOT		( w -- w )
+;	One's complement of tos.
 
-                $COLON  3,'NOT',INVER
-                .dw      DOLIT,-1,XORR,EXIT
+	$COLON	3,'NOT',INVER
+	.dw	DOLIT,-1,XORR,EXIT
 
-;   NEGATE      ( n -- -n )
-;               Two's complement of tos.
+;   NEGATE	( n -- -n )
+;	Two's complement of tos.
 
-                $COLON  6,'NEGATE',NEGAT
-                .dw      INVER,DOLIT,1,PLUS,EXIT
+	$COLON	6,'NEGATE',NEGAT
+	.dw	INVER,DOLIT,1,PLUS,EXIT
 
-;   DNEGATE     ( d -- -d )
-;               Two's complement of top double.
+;   DNEGATE	( d -- -d )
+;	Two's complement of top double.
 
-                $COLON  7,'DNEGATE',DNEGA
-                .dw      INVER,TOR,INVER
-                .dw      DOLIT,1,UPLUS
-                .dw      RFROM,PLUS,EXIT
+	$COLON	7,'DNEGATE',DNEGA
+	.dw	INVER,TOR,INVER
+	.dw	DOLIT,1,UPLUS
+	.dw	RFROM,PLUS,EXIT
 
-;   -           ( n1 n2 -- n1-n2 )
-;               Subtraction.
+;   -		( n1 n2 -- n1-n2 )
+;	Subtraction.
 
-                $COLON  1,'-',SUBB
-                .dw      NEGAT,PLUS,EXIT
+	$COLON	1,'-',SUBB
+	.dw	NEGAT,PLUS,EXIT
 
-;   ABS         ( n -- n )
-;               Return the absolute value of n.
+;   ABS		( n -- n )
+;	Return the absolute value of n.
 
-                $COLON  3,'ABS',ABSS
-                .dw      DUPP,ZLESS
-                .dw      QBRAN,ABS1
-                .dw      NEGAT
-ABS1:           .dw      EXIT
+	$COLON	3,'ABS',ABSS
+	.dw	DUPP,ZLESS
+	.dw	QBRAN,ABS1
+	.dw	NEGAT
+ABS1:	.dw	EXIT
 
-;   =           ( w w -- t )
-;               Return true if top two are equal.
+;   =		( w w -- t )
+;	Return true if top two are equal.
 
-                $COLON  1,'=',EQUAL
-                .dw      XORR
-                .dw      QBRAN,EQU1
-                .dw      DOLIT,0,EXIT            ;false flag
-EQU1:           .dw      DOLIT,-1,EXIT           ;true flag
+	$COLON	1,'=',EQUAL
+	.dw	XORR
+	.dw	QBRAN,EQU1
+	.dw	DOLIT,0,EXIT		;false flag
+EQU1:	.dw	DOLIT,-1,EXIT		;true flag
 
-;   U<          ( u u -- t )
-;               Unsigned compare of top two items.
+;   U<		( u u -- t )
+;	Unsigned compare of top two items.
 
-                $COLON  2,'U<',ULESS
-                .dw      DDUP,XORR,ZLESS
-                .dw      QBRAN,ULES1
-                .dw      SWAP,DROP,ZLESS,EXIT
-ULES1:          .dw      SUBB,ZLESS,EXIT
+	$COLON	2,'U<',ULESS
+	.dw	DDUP,XORR,ZLESS
+	.dw	QBRAN,ULES1
+	.dw	SWAP,DROP,ZLESS,EXIT
+ULES1:	.dw	SUBB,ZLESS,EXIT
 
-;   <           ( n1 n2 -- t )
-;               Signed compare of top two items.
+;   <		( n1 n2 -- t )
+;	Signed compare of top two items.
 
-                $COLON  1,'<',LESS
-                .dw      DDUP,XORR,ZLESS
-                .dw      QBRAN,LESS1
-                .dw      DROP,ZLESS,EXIT
-LESS1:          .dw      SUBB,ZLESS,EXIT
+	$COLON	1,'<',LESS
+	.dw	DDUP,XORR,ZLESS
+	.dw	QBRAN,LESS1
+	.dw	DROP,ZLESS,EXIT
+LESS1:	.dw	SUBB,ZLESS,EXIT
 
-;   MAX         ( n n -- n )
-;               Return the greater of two top stack items.
+;   MAX		( n n -- n )
+;	Return the greater of two top stack items.
 
-                $COLON  3,'MAX',MAX
-                .dw      DDUP,LESS
-                .dw      QBRAN,MAX1
-                .dw      SWAP
-MAX1:           .dw      DROP,EXIT
+	$COLON	3,'MAX',MAX
+	.dw	DDUP,LESS
+	.dw	QBRAN,MAX1
+	.dw	SWAP
+MAX1:	.dw	DROP,EXIT
 
-;   MIN         ( n n -- n )
-;               Return the smaller of top two stack items.
+;   MIN		( n n -- n )
+;	Return the smaller of top two stack items.
 
-                $COLON  3,'MIN',MIN
-                .dw      DDUP,SWAP,LESS
-                .dw      QBRAN,MIN1
-                .dw      SWAP
-MIN1:           .dw      DROP,EXIT
+	$COLON	3,'MIN',MIN
+	.dw	DDUP,SWAP,LESS
+	.dw	QBRAN,MIN1
+	.dw	SWAP
+MIN1:	.dw	DROP,EXIT
 
-;   WITHIN      ( u ul uh -- t )
-;               Return true if u is within the range of ul and uh.
+;   WITHIN	( u ul uh -- t )
+;	Return true if u is within the range of ul and uh.
 
-                $COLON  6,'WITHIN',WITHI
-                .dw      OVER,SUBB,TOR                   ;ul <= u < uh
-                .dw      SUBB,RFROM,ULESS,EXIT
+	$COLON	6,'WITHIN',WITHI
+	.dw	OVER,SUBB,TOR		;ul <= u < uh
+	.dw	SUBB,RFROM,ULESS,EXIT
 
 ;; Divide
 
-;   UM/MOD      ( udl udh u -- ur uq )
-;               Unsigned divide of a double by a single. Return mod and quotient.
+;   UM/MOD	( udl udh u -- ur uq )
+;	Unsigned divide of a double by a single. Return mod and quotient.
 
-                $COLON  6,'UM/MOD',UMMOD
-                .dw      DDUP,ULESS
-                .dw      QBRAN,UMM4
-                .dw      NEGAT,DOLIT,15,TOR
-UMM1:           .dw      TOR,DUPP,UPLUS
-                .dw      TOR,TOR,DUPP,UPLUS
-                .dw      RFROM,PLUS,DUPP
-                .dw      RFROM,RAT,SWAP,TOR
-                .dw      UPLUS,RFROM,ORR
-                .dw      QBRAN,UMM2
-                .dw      TOR,DROP,DOLIT,1,PLUS,RFROM
-                .dw      BRAN,UMM3
-UMM2:           .dw      DROP
-UMM3:           .dw      RFROM
-                .dw      DONXT,UMM1
-                .dw      DROP,SWAP,EXIT
-UMM4:           .dw      DROP,DDROP
-                .dw      DOLIT,-1,DUPP,EXIT      ;overflow, return max
+	$COLON	6,'UM/MOD',UMMOD
+	.dw	DDUP,ULESS
+	.dw	QBRAN,UMM4
+	.dw	NEGAT,DOLIT,15,TOR
+UMM1:	.dw	TOR,DUPP,UPLUS
+	.dw	TOR,TOR,DUPP,UPLUS
+	.dw	RFROM,PLUS,DUPP
+	.dw	RFROM,RAT,SWAP,TOR
+	.dw	UPLUS,RFROM,ORR
+	.dw	QBRAN,UMM2
+	.dw	TOR,DROP,DOLIT,1,PLUS,RFROM
+	.dw	BRAN,UMM3
+UMM2:	.dw	DROP
+UMM3:	.dw	RFROM
+	.dw	DONXT,UMM1
+	.dw	DROP,SWAP,EXIT
+UMM4:	.dw	DROP,DDROP
+	.dw	DOLIT,-1,DUPP,EXIT	;overflow, return max
 
-;   M/MOD       ( d n -- r q )
-;               Signed floored divide of double by single. Return mod and quotient.
+;   M/MOD	( d n -- r q )
+;	Signed floored divide of double by single. Return mod and quotient.
 
-                $COLON  5,'M/MOD',MSMOD
-                .dw      DUPP,ZLESS,DUPP,TOR
-                .dw      QBRAN,MMOD1
-                .dw      NEGAT,TOR,DNEGA,RFROM
-MMOD1:          .dw      TOR,DUPP,ZLESS
-                .dw      QBRAN,MMOD2
-                .dw      RAT,PLUS
-MMOD2:          .dw      RFROM,UMMOD,RFROM
-                .dw      QBRAN,MMOD3
-                .dw      SWAP,NEGAT,SWAP
-MMOD3:          .dw      EXIT
+	$COLON	5,'M/MOD',MSMOD
+	.dw	DUPP,ZLESS,DUPP,TOR
+	.dw	QBRAN,MMOD1
+	.dw	NEGAT,TOR,DNEGA,RFROM
+MMOD1:	.dw	TOR,DUPP,ZLESS
+	.dw	QBRAN,MMOD2
+	.dw	RAT,PLUS
+MMOD2:	.dw	RFROM,UMMOD,RFROM
+	.dw	QBRAN,MMOD3
+	.dw	SWAP,NEGAT,SWAP
+MMOD3:	.dw	EXIT
 
-;   /MOD        ( n n -- r q )
-;               Signed divide. Return mod and quotient.
+;   /MOD	( n n -- r q )
+;	Signed divide. Return mod and quotient.
 
-                $COLON  4,'/MOD',SLMOD
-                .dw      OVER,ZLESS,SWAP,MSMOD,EXIT
+	$COLON	4,'/MOD',SLMOD
+	.dw	OVER,ZLESS,SWAP,MSMOD,EXIT
 
-;   MOD         ( n n -- r )
-;               Signed divide. Return mod only.
+;   MOD		( n n -- r )
+;	Signed divide. Return mod only.
 
-                $COLON  3,'MOD',MODD
-                .dw      SLMOD,DROP,EXIT
+	$COLON	3,'MOD',MODD
+	.dw	SLMOD,DROP,EXIT
 
-;   /           ( n n -- q )
-;               Signed divide. Return quotient only.
+;   /		( n n -- q )
+;	Signed divide. Return quotient only.
 
-                $COLON  1,'/',SLASH
-                .dw      SLMOD,SWAP,DROP,EXIT
+	$COLON	1,'/',SLASH
+	.dw	SLMOD,SWAP,DROP,EXIT
 
 ;; Multiply
 
-;   UM*         ( u u -- ud )
-;               Unsigned multiply. Return double product.
+;   UM*		( u u -- ud )
+;	Unsigned multiply. Return double product.
 
-                $COLON  3,'UM*',UMSTA
-                .dw      DOLIT,0,SWAP,DOLIT,15,TOR
-UMST1:          .dw      DUPP,UPLUS,TOR,TOR
-                .dw      DUPP,UPLUS,RFROM,PLUS,RFROM
-                .dw      QBRAN,UMST2
-                .dw      TOR,OVER,UPLUS,RFROM,PLUS
-UMST2:          .dw      DONXT,UMST1
-                .dw      ROT,DROP,EXIT
+	$COLON	3,'UM*',UMSTA
+	.dw	DOLIT,0,SWAP,DOLIT,15,TOR
+UMST1:	.dw	DUPP,UPLUS,TOR,TOR
+	.dw	DUPP,UPLUS,RFROM,PLUS,RFROM
+	.dw	QBRAN,UMST2
+	.dw	TOR,OVER,UPLUS,RFROM,PLUS
+UMST2:	.dw	DONXT,UMST1
+	.dw	ROT,DROP,EXIT
 
-;   *           ( n n -- n )
-;               Signed multiply. Return single product.
+;   *		( n n -- n )
+;	Signed multiply. Return single product.
 
-                $COLON  1,'*',STAR
-                .dw      UMSTA,DROP,EXIT
+	$COLON	1,'*',STAR
+	.dw	UMSTA,DROP,EXIT
 
-;   M*          ( n n -- d )
-;               Signed multiply. Return double product.
+;   M*		( n n -- d )
+;	Signed multiply. Return double product.
 
-                $COLON  2,'M*',MSTAR
-                .dw      DDUP,XORR,ZLESS,TOR
-                .dw      ABSS,SWAP,ABSS,UMSTA
-                .dw      RFROM
-                .dw      QBRAN,MSTA1
-                .dw      DNEGA
-MSTA1:          .dw      EXIT
+	$COLON	2,'M*',MSTAR
+	.dw	DDUP,XORR,ZLESS,TOR
+	.dw	ABSS,SWAP,ABSS,UMSTA
+	.dw	RFROM
+	.dw	QBRAN,MSTA1
+	.dw	DNEGA
+MSTA1:	.dw	EXIT
 
-;   */MOD       ( n1 n2 n3 -- r q )
-;               Multiply n1 and n2, then divide by n3. Return mod and quotient.
+;   */MOD	( n1 n2 n3 -- r q )
+;	Multiply n1 and n2, then divide by n3. Return mod and quotient.
 
-                $COLON  5,'*/MOD',SSMOD
-                .dw      TOR,MSTAR,RFROM,MSMOD,EXIT
+	$COLON	5,'*/MOD',SSMOD
+	.dw	TOR,MSTAR,RFROM,MSMOD,EXIT
 
-;   */          ( n1 n2 n3 -- q )
-;               Multiply n1 by n2, then divide by n3. Return quotient only.
+;   */		( n1 n2 n3 -- q )
+;	Multiply n1 by n2, then divide by n3. Return quotient only.
 
-                $COLON  2,'*/',STASL
-                .dw      SSMOD,SWAP,DROP,EXIT
+	$COLON	2,'*/',STASL
+	.dw	SSMOD,SWAP,DROP,EXIT
 
 ;; Miscellaneous
 
-;   CELL+       ( a -- a )
-;               Add cell size in byte to address.
+;   CELL+	( a -- a )
+;	Add cell size in byte to address.
 
-                $COLON  5,'CELL+',CELLP
-                .dw      DOLIT,CELLL,PLUS,EXIT
+	$COLON	5,'CELL+',CELLP
+	.dw	DOLIT,CELLL,PLUS,EXIT
 
-;   CELL-       ( a -- a )
-;               Subtract cell size in byte from address.
+;   CELL-	( a -- a )
+;	Subtract cell size in byte from address.
 
-                $COLON  5,'CELL-',CELLM
-                .dw      DOLIT,0-CELLL,PLUS,EXIT
+	$COLON	5,'CELL-',CELLM
+	.dw	DOLIT,0-CELLL,PLUS,EXIT
 
-;   CELLS       ( n -- n )
-;               Multiply tos by cell size in bytes.
+;   CELLS	( n -- n )
+;	Multiply tos by cell size in bytes.
 
-                $COLON  5,'CELLS',CELLS
-                .dw      DOLIT,CELLL,STAR,EXIT
+	$COLON	5,'CELLS',CELLS
+	.dw	DOLIT,CELLL,STAR,EXIT
 
-;   ALIGNED     ( b -- a )
-;               Align address to the cell boundary.
+;   ALIGNED	( b -- a )
+;	Align address to the cell boundary.
 
-                $COLON  7,'ALIGNED',ALGND
-                .dw      DUPP,DOLIT,0,DOLIT,CELLL
-                .dw      UMMOD,DROP,DUPP
-                .dw      QBRAN,ALGN1
-                .dw      DOLIT,CELLL,SWAP,SUBB
-ALGN1:          .dw      PLUS,EXIT
+	$COLON	7,'ALIGNED',ALGND
+	.dw	DUPP,DOLIT,0,DOLIT,CELLL
+	.dw	UMMOD,DROP,DUPP
+	.dw	QBRAN,ALGN1
+	.dw	DOLIT,CELLL,SWAP,SUBB
+ALGN1:	.dw	PLUS,EXIT
 
-;   BL          ( -- 32 )
-;               Return 32, the blank character.
+;   BL		( -- 32 )
+;	Return 32, the blank character.
 
-                $COLON  2,'BL',BLANK
-                .dw      DOLIT,' ,EXIT
+	$COLON	2,'BL',BLANK
+	.dw	DOLIT,' ,EXIT
 
-;   >CHAR       ( c -- c )
-;               Filter non-printing characters.
+;   >CHAR	( c -- c )
+;	Filter non-printing characters.
 
-                $COLON  5,'>CHAR',TCHAR
-                .dw      DOLIT,0x7F,ANDD,DUPP    ;mask msb
-                .dw      DOLIT,0x7F,BLANK,WITHI   ;check for printable
-                .dw      QBRAN,TCHA1
-                .dw      DROP,DOLIT,'_          ;replace non-printables
-TCHA1:          .dw      EXIT
+	$COLON	5,'>CHAR',TCHAR
+	.dw	DOLIT,0x7F,ANDD,DUPP	;mask msb
+	.dw	DOLIT,0x7F,BLANK,WITHI	;check for printable
+	.dw	QBRAN,TCHA1
+	.dw	DROP,DOLIT,'_		;replace non-printables
+TCHA1:	.dw	EXIT
 
-;   DEPTH       ( -- n )
-;               Return the depth of the data stack.
+;   DEPTH	( -- n )
+;	Return the depth of the data stack.
 
-                $COLON  5,'DEPTH',DEPTH
-                .dw      SPAT,SZERO,AT,SWAP,SUBB
-                .dw      DOLIT,CELLL,SLASH,EXIT
+	$COLON	5,'DEPTH',DEPTH
+	.dw	SPAT,SZERO,AT,SWAP,SUBB
+	.dw	DOLIT,CELLL,SLASH,EXIT
 
-;   PICK        ( ... +n -- ... w )
-;               Copy the nth stack item to tos.
+;   PICK	( ... +n -- ... w )
+;	Copy the nth stack item to tos.
 
-                $COLON  4,'PICK',PICK
-                .dw      DOLIT,1,PLUS,CELLS
-                .dw      SPAT,PLUS,AT,EXIT
+	$COLON	4,'PICK',PICK
+	.dw	DOLIT,1,PLUS,CELLS
+	.dw	SPAT,PLUS,AT,EXIT
 
 ;; Memory access
 
-;   +!          ( n a -- )
-;               Add n to the contents at address a.
+;   +!		( n a -- )
+;	Add n to the contents at address a.
 
-                $COLON  2,'+!',PSTOR
-                .dw      SWAP,OVER,AT,PLUS
-                .dw      SWAP,STORE,EXIT
+	$COLON	2,'+!',PSTOR
+	.dw	SWAP,OVER,AT,PLUS
+	.dw	SWAP,STORE,EXIT
 
-;   2!          ( d a -- )
-;               Store the double integer to address a.
+;   2!		( d a -- )
+;	Store the double integer to address a.
 
-                $COLON  2,'2!',DSTOR
-                .dw      SWAP,OVER,STORE
-                .dw      CELLP,STORE,EXIT
+	$COLON	2,'2!',DSTOR
+	.dw	SWAP,OVER,STORE
+	.dw	CELLP,STORE,EXIT
 
-;   2@          ( a -- d )
-;               Fetch double integer from address a.
+;   2@		( a -- d )
+;	Fetch double integer from address a.
 
-                $COLON  2,'2@',DAT
-                .dw      DUPP,CELLP,AT
-                .dw      SWAP,AT,EXIT
+	$COLON	2,'2@',DAT
+	.dw	DUPP,CELLP,AT
+	.dw	SWAP,AT,EXIT
 
-;   COUNT       ( b -- b +n )
-;               Return count byte of a string and add 1 to byte address.
+;   COUNT	( b -- b +n )
+;	Return count byte of a string and add 1 to byte address.
 
-                $COLON  5,'COUNT',COUNT
-                .dw      DUPP,DOLIT,1,PLUS
-                .dw      SWAP,CAT,EXIT
+	$COLON	5,'COUNT',COUNT
+	.dw	DUPP,DOLIT,1,PLUS
+	.dw	SWAP,CAT,EXIT
 
-;   HERE        ( -- a )
-;               Return the top of the code dictionary.
+;   HERE	( -- a )
+;	Return the top of the code dictionary.
 
-                $COLON  4,'HERE',HERE
-                .dw      CP,AT,EXIT
+	$COLON	4,'HERE',HERE
+	.dw	CP,AT,EXIT
 
-;   PAD         ( -- a )
-;               Return the address of a temporary buffer.
+;   PAD		( -- a )
+;	Return the address of a temporary buffer.
 
-                $COLON  3,'PAD',PAD
-                .dw      HERE,DOLIT,80,PLUS,EXIT
+	$COLON	3,'PAD',PAD
+	.dw	HERE,DOLIT,80,PLUS,EXIT
 
-;   TIB         ( -- a )
-;               Return the address of the terminal input buffer.
+;   TIB		( -- a )
+;	Return the address of the terminal input buffer.
 
-                $COLON  3,'TIB',TIB
-                .dw      NTIB,CELLP,AT,EXIT
+	$COLON	3,'TIB',TIB
+	.dw	NTIB,CELLP,AT,EXIT
 
-;   @EXECUTE    ( a -- )
-;               Execute vector stored in address a.
+;   @EXECUTE	( a -- )
+;	Execute vector stored in address a.
 
-                $COLON  8,'@EXECUTE',ATEXE
-                .dw      AT,QDUP                 ;?address or zero
-                .dw      QBRAN,EXE1
-                .dw      EXECU                   ;execute if non-zero
-EXE1:           .dw      EXIT                    ;do nothing if zero
+	$COLON	8,'@EXECUTE',ATEXE
+	.dw	AT,QDUP		;?address or zero
+	.dw	QBRAN,EXE1
+	.dw	EXECU			;execute if non-zero
+EXE1:	.dw	EXIT			;do nothing if zero
 
-;   CMOVE       ( b1 b2 u -- )
-;               Copy u bytes from b1 to b2.
+;   CMOVE	( b1 b2 u -- )
+;	Copy u bytes from b1 to b2.
 
-                $COLON  5,'CMOVE',CMOVEL
-                .dw      TOR
-                .dw      BRAN,CMOV2
-CMOV1:          .dw      TOR,DUPP,CAT
-                .dw      RAT,CSTOR
-                .dw      DOLIT,1,PLUS
-                .dw      RFROM,DOLIT,1,PLUS
-CMOV2:          .dw      DONXT,CMOV1
-                .dw      DDROP,EXIT
+	$COLON	5,'CMOVE',CMOVEL
+	.dw	TOR
+	.dw	BRAN,CMOV2
+CMOV1:	.dw	TOR,DUPP,CAT
+	.dw	RAT,CSTOR
+	.dw	DOLIT,1,PLUS
+	.dw	RFROM,DOLIT,1,PLUS
+CMOV2:	.dw	DONXT,CMOV1
+	.dw	DDROP,EXIT
 
-;   FILL        ( b u c -- )
-;               Fill u bytes of character c to area beginning at b.
+;   FILL	( b u c -- )
+;	Fill u bytes of character c to area beginning at b.
 
-                $COLON  4,'FILL',FILL
-                .dw      SWAP,TOR,SWAP
-                .dw      BRAN,FILL2
-FILL1:          .dw      DDUP,CSTOR,DOLIT,1,PLUS
-FILL2:          .dw      DONXT,FILL1
-                .dw      DDROP,EXIT
+	$COLON	4,'FILL',FILL
+	.dw	SWAP,TOR,SWAP
+	.dw	BRAN,FILL2
+FILL1:	.dw	DDUP,CSTOR,DOLIT,1,PLUS
+FILL2:	.dw	DONXT,FILL1
+	.dw	DDROP,EXIT
 
-;   -TRAILING   ( b u -- b u )
-;               Adjust the count to eliminate trailing white space.
+;   -TRAILING	( b u -- b u )
+;	Adjust the count to eliminate trailing white space.
 
-                $COLON  9,'-TRAILING',DTRAI
-                .dw      TOR
-                .dw      BRAN,DTRA2
-DTRA1:          .dw      BLANK,OVER,RAT,PLUS,CAT,LESS
-                .dw      QBRAN,DTRA2
-                .dw      RFROM,DOLIT,1,PLUS,EXIT ;adjusted count
-DTRA2:          .dw      DONXT,DTRA1
-                .dw      DOLIT,0,EXIT            ;count=0
+	$COLON	9,'-TRAILING',DTRAI
+	.dw	TOR
+	.dw	BRAN,DTRA2
+DTRA1:	.dw	BLANK,OVER,RAT,PLUS,CAT,LESS
+	.dw	QBRAN,DTRA2
+	.dw	RFROM,DOLIT,1,PLUS,EXIT ;adjusted count
+DTRA2:	.dw	DONXT,DTRA1
+	.dw	DOLIT,0,EXIT		;count=0
 
-;   PACK$       ( b u a -- a )
-;               Build a counted string with u characters from b. Null fill.
+;   PACK$	( b u a -- a )
+;	Build a counted string with u characters from b. Null fill.
 
-                $COLON  5,'PACK$',PACKS
-                .dw      ALGND,DUPP,TOR          ;strings only on cell boundary
-                .dw      OVER,DUPP,DOLIT,0
-                .dw      DOLIT,CELLL,UMMOD,DROP  ;count mod cell
-                .dw      SUBB,OVER,PLUS
-                .dw      DOLIT,0,SWAP,STORE      ;null fill cell
-                .dw      DDUP,CSTOR,DOLIT,1,PLUS ;save count
-                .dw      SWAP,CMOVEL,RFROM,EXIT   ;move string
+	$COLON	5,'PACK$',PACKS
+	.dw	ALGND,DUPP,TOR		;strings only on cell boundary
+	.dw	OVER,DUPP,DOLIT,0
+	.dw	DOLIT,CELLL,UMMOD,DROP	;count mod cell
+	.dw	SUBB,OVER,PLUS
+	.dw	DOLIT,0,SWAP,STORE	;null fill cell
+	.dw	DDUP,CSTOR,DOLIT,1,PLUS ;save count
+	.dw	SWAP,CMOVEL,RFROM,EXIT	;move string
 
 ;; Numeric output, single precision
 
-;   DIGIT       ( u -- c )
-;               Convert digit u to a character.
+;   DIGIT	( u -- c )
+;	Convert digit u to a character.
 
-                $COLON  5,'DIGIT',DIGIT
-                .dw      DOLIT,9,OVER,LESS
-                .dw      DOLIT,7,ANDD,PLUS
-                .dw      DOLIT,'0,PLUS,EXIT
+	$COLON	5,'DIGIT',DIGIT
+	.dw	DOLIT,9,OVER,LESS
+	.dw	DOLIT,7,ANDD,PLUS
+	.dw	DOLIT,'0,PLUS,EXIT
 
-;   EXTRACT     ( n base -- n c )
-;               Extract the least significant digit from n.
+;   EXTRACT	( n base -- n c )
+;	Extract the least significant digit from n.
 
-                $COLON  7,'EXTRACT',EXTRC
-                .dw      DOLIT,0,SWAP,UMMOD
-                .dw      SWAP,DIGIT,EXIT
+	$COLON	7,'EXTRACT',EXTRC
+	.dw	DOLIT,0,SWAP,UMMOD
+	.dw	SWAP,DIGIT,EXIT
 
-;   <#          ( -- )
-;               Initiate the numeric output process.
+;   <#		( -- )
+;	Initiate the numeric output process.
 
-                $COLON  2,'<#',BDIGS
-                .dw      PAD,HLD,STORE,EXIT
+	$COLON	2,'<#',BDIGS
+	.dw	PAD,HLD,STORE,EXIT
 
-;   HOLD        ( c -- )
-;               Insert a character into the numeric output string.
+;   HOLD	( c -- )
+;	Insert a character into the numeric output string.
 
-                $COLON  4,'HOLD',HOLD
-                .dw      HLD,AT,DOLIT,1,SUBB
-                .dw      DUPP,HLD,STORE,CSTOR,EXIT
+	$COLON	4,'HOLD',HOLD
+	.dw	HLD,AT,DOLIT,1,SUBB
+	.dw	DUPP,HLD,STORE,CSTOR,EXIT
 
-;   #           ( u -- u )
-;               Extract one digit from u and append the digit to output string.
+;   #		( u -- u )
+;	Extract one digit from u and append the digit to output string.
 
-                $COLON  1,'#',DIG
-                .dw      BASE,AT,EXTRC,HOLD,EXIT
+	$COLON	1,'#',DIG
+	.dw	BASE,AT,EXTRC,HOLD,EXIT
 
-;   #S          ( u -- 0 )
-;               Convert u until all digits are added to the output string.
+;   #S		( u -- 0 )
+;	Convert u until all digits are added to the output string.
 
-                $COLON  2,'#S',DIGS
-DIGS1:          .dw      DIG,DUPP
-                .dw      QBRAN,DIGS2
-                .dw      BRAN,DIGS1
-DIGS2:          .dw      EXIT
+	$COLON	2,'#S',DIGS
+DIGS1:	.dw	DIG,DUPP
+	.dw	QBRAN,DIGS2
+	.dw	BRAN,DIGS1
+DIGS2:	.dw	EXIT
 
-;   SIGN        ( n -- )
-;               Add a minus sign to the numeric output string.
+;   SIGN	( n -- )
+;	Add a minus sign to the numeric output string.
 
-                $COLON  4,'SIGN',SIGN
-                .dw      ZLESS
-                .dw      QBRAN,SIGN1
-                .dw      DOLIT,'-,HOLD
-SIGN1:          .dw      EXIT
+	$COLON	4,'SIGN',SIGN
+	.dw	ZLESS
+	.dw	QBRAN,SIGN1
+	.dw	DOLIT,'-,HOLD
+SIGN1:	.dw	EXIT
 
-;   #>          ( w -- b u )
-;               Prepare the output string to be TYPE'd.
+;   #>		( w -- b u )
+;	Prepare the output string to be TYPE'd.
 
-                $COLON  2,'#>',EDIGS
-                .dw      DROP,HLD,AT
-                .dw      PAD,OVER,SUBB,EXIT
+	$COLON	2,'#>',EDIGS
+	.dw	DROP,HLD,AT
+	.dw	PAD,OVER,SUBB,EXIT
 
-;   str         ( n -- b u )
-;               Convert a signed integer to a numeric string.
+;   str		( n -- b u )
+;	Convert a signed integer to a numeric string.
 
-                $COLON  3,'str',STRL
-                .dw      DUPP,TOR,ABSS
-                .dw      BDIGS,DIGS,RFROM
-                .dw      SIGN,EDIGS,EXIT
+	$COLON	3,'str',STRL
+	.dw	DUPP,TOR,ABSS
+	.dw	BDIGS,DIGS,RFROM
+	.dw	SIGN,EDIGS,EXIT
 
-;   HEX         ( -- )
-;               Use radix 16 as base for numeric conversions.
+;   HEX		( -- )
+;	Use radix 16 as base for numeric conversions.
 
-                $COLON  3,'HEX',HEX
-                .dw      DOLIT,16,BASE,STORE,EXIT
+	$COLON	3,'HEX',HEX
+	.dw	DOLIT,16,BASE,STORE,EXIT
 
-;   DECIMAL     ( -- )
-;               Use radix 10 as base for numeric conversions.
+;   DECIMAL	( -- )
+;	Use radix 10 as base for numeric conversions.
 
-                $COLON  7,'DECIMAL',DECIM
-                .dw      DOLIT,10,BASE,STORE,EXIT
+	$COLON	7,'DECIMAL',DECIM
+	.dw	DOLIT,10,BASE,STORE,EXIT
 
 ;; Numeric input, single precision
 
-;   DIGIT?      ( c base -- u t )
-;               Convert a character to its numeric value. A flag indicates success.
+;   DIGIT?	( c base -- u t )
+;	Convert a character to its numeric value. A flag indicates success.
 
-                $COLON  6,'DIGIT?',DIGTQ
-                .dw      TOR,DOLIT,'0,SUBB
-                .dw      DOLIT,9,OVER,LESS
-                .dw      QBRAN,DGTQ1
-                .dw      DOLIT,7,SUBB
-                .dw      DUPP,DOLIT,10,LESS,ORR
-DGTQ1:          .dw      DUPP,RFROM,ULESS,EXIT
+	$COLON	6,'DIGIT?',DIGTQ
+	.dw	TOR,DOLIT,'0,SUBB
+	.dw	DOLIT,9,OVER,LESS
+	.dw	QBRAN,DGTQ1
+	.dw	DOLIT,7,SUBB
+	.dw	DUPP,DOLIT,10,LESS,ORR
+DGTQ1:	.dw	DUPP,RFROM,ULESS,EXIT
 
-;   NUMBER?     ( a -- n T | a F )
-;               Convert a number string to integer. Push a flag on tos.
+;   NUMBER?	( a -- n T | a F )
+;	Convert a number string to integer. Push a flag on tos.
 
-                $COLON  7,'NUMBER?',NUMBQ
-                .dw      BASE,AT,TOR,DOLIT,0,OVER,COUNT
-                .dw      OVER,CAT,DOLIT,'$,EQUAL
-                .dw      QBRAN,NUMQ1
-                .dw      HEX,SWAP,DOLIT,1,PLUS
-                .dw      SWAP,DOLIT,1,SUBB
-NUMQ1:          .dw      OVER,CAT,DOLIT,'-,EQUAL,TOR
-                .dw      SWAP,RAT,SUBB,SWAP,RAT,PLUS,QDUP
-                .dw      QBRAN,NUMQ6
-                .dw      DOLIT,1,SUBB,TOR
-NUMQ2:          .dw      DUPP,TOR,CAT,BASE,AT,DIGTQ
-                .dw      QBRAN,NUMQ4
-                .dw      SWAP,BASE,AT,STAR,PLUS,RFROM
-                .dw      DOLIT,1,PLUS
-                .dw      DONXT,NUMQ2
-                .dw      RAT,SWAP,DROP
-                .dw      QBRAN,NUMQ3
-                .dw      NEGAT
-NUMQ3:          .dw      SWAP
-                .dw      BRAN,NUMQ5
-NUMQ4:          .dw      RFROM,RFROM,DDROP,DDROP,DOLIT,0
-NUMQ5:          .dw      DUPP
-NUMQ6:          .dw      RFROM,DDROP
-                .dw      RFROM,BASE,STORE,EXIT
+	$COLON	7,'NUMBER?',NUMBQ
+	.dw	BASE,AT,TOR,DOLIT,0,OVER,COUNT
+	.dw	OVER,CAT,DOLIT,'$,EQUAL
+	.dw	QBRAN,NUMQ1
+	.dw	HEX,SWAP,DOLIT,1,PLUS
+	.dw	SWAP,DOLIT,1,SUBB
+NUMQ1:	.dw	OVER,CAT,DOLIT,'-,EQUAL,TOR
+	.dw	SWAP,RAT,SUBB,SWAP,RAT,PLUS,QDUP
+	.dw	QBRAN,NUMQ6
+	.dw	DOLIT,1,SUBB,TOR
+NUMQ2:	.dw	DUPP,TOR,CAT,BASE,AT,DIGTQ
+	.dw	QBRAN,NUMQ4
+	.dw	SWAP,BASE,AT,STAR,PLUS,RFROM
+	.dw	DOLIT,1,PLUS
+	.dw	DONXT,NUMQ2
+	.dw	RAT,SWAP,DROP
+	.dw	QBRAN,NUMQ3
+	.dw	NEGAT
+NUMQ3:	.dw	SWAP
+	.dw	BRAN,NUMQ5
+NUMQ4:	.dw	RFROM,RFROM,DDROP,DDROP,DOLIT,0
+NUMQ5:	.dw	DUPP
+NUMQ6:	.dw	RFROM,DDROP
+	.dw	RFROM,BASE,STORE,EXIT
 
 ;; Basic I/O
 
-;   ?KEY        ( -- c T | F )
-;               Return input character and true, or a false if no input.
+;   ?KEY	( -- c T | F )
+;	Return input character and true, or a false if no input.
 
-                $COLON  4,'?KEY',QKEY
-                .dw      TQKEY,ATEXE,EXIT
+	$COLON	4,'?KEY',QKEY
+	.dw	TQKEY,ATEXE,EXIT
 
-;   KEY         ( -- c )
-;               Wait for and return an input character.
+;   KEY		( -- c )
+;	Wait for and return an input character.
 
-                $COLON  3,'KEY',KEY
-KEY1:           .dw      QKEY
-                .dw      QBRAN,KEY1
-                .dw      EXIT
+	$COLON	3,'KEY',KEY
+KEY1:	.dw	QKEY
+	.dw	QBRAN,KEY1
+	.dw	EXIT
 
-;   EMIT        ( c -- )
-;               Send a character to the output device.
+;   EMIT	( c -- )
+;	Send a character to the output device.
 
-                $COLON  4,'EMIT',EMIT
-                .dw      TEMIT,ATEXE,EXIT
+	$COLON	4,'EMIT',EMIT
+	.dw	TEMIT,ATEXE,EXIT
 
-;   NUF?        ( -- t )
-;               Return false if no input, else pause and if CR return true.
+;   NUF?	( -- t )
+;	Return false if no input, else pause and if CR return true.
 
-                $COLON  4,'NUF?',NUFQ
-                .dw      QKEY,DUPP
-                .dw      QBRAN,NUFQ1
-                .dw      DDROP,KEY,DOLIT,CRR,EQUAL
-NUFQ1:          .dw      EXIT
+	$COLON	4,'NUF?',NUFQ
+	.dw	QKEY,DUPP
+	.dw	QBRAN,NUFQ1
+	.dw	DDROP,KEY,DOLIT,CRR,EQUAL
+NUFQ1:	.dw	EXIT
 
-;   PACE        ( -- )
-;               Send a pace character for the file downloading process.
+;   PACE	( -- )
+;	Send a pace character for the file downloading process.
 
-                $COLON  4,'PACE',PACE
-                .dw      DOLIT,11,EMIT,EXIT
+	$COLON	4,'PACE',PACE
+	.dw	DOLIT,11,EMIT,EXIT
 
-;   SPACE       ( -- )
-;               Send the blank character to the output device.
+;   SPACE	( -- )
+;	Send the blank character to the output device.
 
-                $COLON  5,'SPACE',SPACE
-                .dw      BLANK,EMIT,EXIT
+	$COLON	5,'SPACE',SPACE
+	.dw	BLANK,EMIT,EXIT
 
-;   SPACES      ( +n -- )
-;               Send n spaces to the output device.
+;   SPACES	( +n -- )
+;	Send n spaces to the output device.
 
-                $COLON  6,'SPACES',SPACS
-                .dw      DOLIT,0,MAX,TOR
-                .dw      BRAN,CHAR2
-CHAR1:          .dw      SPACE
-CHAR2:          .dw      DONXT,CHAR1
-                .dw      EXIT
+	$COLON	6,'SPACES',SPACS
+	.dw	DOLIT,0,MAX,TOR
+	.dw	BRAN,CHAR2
+CHAR1:	.dw	SPACE
+CHAR2:	.dw	DONXT,CHAR1
+	.dw	EXIT
 
-;   TYPE        ( b u -- )
-;               Output u characters from b.
+;   TYPE	( b u -- )
+;	Output u characters from b.
 
-                $COLON  4,'TYPE',TYPEE
-                .dw      TOR
-                .dw      BRAN,TYPE2
-TYPE1:          .dw      DUPP,CAT,EMIT
-                .dw      DOLIT,1,PLUS
-TYPE2:          .dw      DONXT,TYPE1
-                .dw      DROP,EXIT
+	$COLON	4,'TYPE',TYPEE
+	.dw	TOR
+	.dw	BRAN,TYPE2
+TYPE1:	.dw	DUPP,CAT,EMIT
+	.dw	DOLIT,1,PLUS
+TYPE2:	.dw	DONXT,TYPE1
+	.dw	DROP,EXIT
 
-;   CR          ( -- )
-;               Output a carriage return and a line feed.
+;   CR		( -- )
+;	Output a carriage return and a line feed.
 
-                $COLON  2,'CR',CR
-                .dw      DOLIT,CRR,EMIT
-                .dw      DOLIT,LF,EMIT,EXIT
+	$COLON	2,'CR',CR
+	.dw	DOLIT,CRR,EMIT
+	.dw	DOLIT,LF,EMIT,EXIT
 
-;   do$         ( -- a )
-;               Return the address of a compiled string.
+;   do$		( -- a )
+;	Return the address of a compiled string.
 
-                $COLON  COMPO+3,'do$',DOSTR
-                .dw      RFROM,RAT,RFROM,COUNT,PLUS
-                .dw      ALGND,TOR,SWAP,TOR,EXIT
+	$COLON	COMPO+3,'do$',DOSTR
+	.dw	RFROM,RAT,RFROM,COUNT,PLUS
+	.dw	ALGND,TOR,SWAP,TOR,EXIT
 
-;   $"|         ( -- a )
-;               Run time routine compiled by $". Return address of a compiled string.
+;   $"|		( -- a )
+;	Run time routine compiled by $". Return address of a compiled string.
 
-                $COLON  COMPO+3,'$"|',STRQP
-                .dw      DOSTR,EXIT              ;force a call to do$
+	$COLON	COMPO+3,'$"|',STRQP
+	.dw	DOSTR,EXIT		;force a call to do$
 
-;   ."|         ( -- )
-;               Run time routine of ." . Output a compiled string.
+;   ."|		( -- )
+;	Run time routine of ." . Output a compiled string.
 
-                $COLON  COMPO+3,'."|',DOTQP
-                .dw      DOSTR,COUNT,TYPEE,EXIT
+	$COLON	COMPO+3,'."|',DOTQP
+	.dw	DOSTR,COUNT,TYPEE,EXIT
 
-;   .R          ( n +n -- )
-;               Display an integer in a field of n columns, right justified.
+;   .R		( n +n -- )
+;	Display an integer in a field of n columns, right justified.
 
-                $COLON  2,'.R',DOTR
-                .dw      TOR,STRL,RFROM,OVER,SUBB
-                .dw      SPACS,TYPEE,EXIT
+	$COLON	2,'.R',DOTR
+	.dw	TOR,STRL,RFROM,OVER,SUBB
+	.dw	SPACS,TYPEE,EXIT
 
-;   U.R         ( u +n -- )
-;               Display an unsigned integer in n column, right justified.
+;   U.R		( u +n -- )
+;	Display an unsigned integer in n column, right justified.
 
-                $COLON  3,'U.R',UDOTR
-                .dw      TOR,BDIGS,DIGS,EDIGS
-                .dw      RFROM,OVER,SUBB
-                .dw      SPACS,TYPEE,EXIT
+	$COLON	3,'U.R',UDOTR
+	.dw	TOR,BDIGS,DIGS,EDIGS
+	.dw	RFROM,OVER,SUBB
+	.dw	SPACS,TYPEE,EXIT
 
-;   U.          ( u -- )
-;               Display an unsigned integer in free format.
+;   U.		( u -- )
+;	Display an unsigned integer in free format.
 
-                $COLON  2,'U.',UDOT
-                .dw      BDIGS,DIGS,EDIGS
-                .dw      SPACE,TYPEE,EXIT
+	$COLON	2,'U.',UDOT
+	.dw	BDIGS,DIGS,EDIGS
+	.dw	SPACE,TYPEE,EXIT
 
-;   .           ( w -- )
-;               Display an integer in free format, preceeded by a space.
+;   .		( w -- )
+;	Display an integer in free format, preceeded by a space.
 
-                $COLON  1,'.',DOT
-                .dw      BASE,AT,DOLIT,10,XORR   ;?decimal
-                .dw      QBRAN,DOT1
-                .dw      UDOT,EXIT               ;no, display unsigned
-DOT1:           .dw      STRL,SPACE,TYPEE,EXIT    ;yes, display signed
+	$COLON	1,'.',DOT
+	.dw	BASE,AT,DOLIT,10,XORR	;?decimal
+	.dw	QBRAN,DOT1
+	.dw	UDOT,EXIT		;no, display unsigned
+DOT1:	.dw	STRL,SPACE,TYPEE,EXIT	;yes, display signed
 
-;   ?           ( a -- )
-;               Display the contents in a memory cell.
+;   ?		( a -- )
+;	Display the contents in a memory cell.
 
-                $COLON  1,'?',QUEST
-                .dw      AT,DOT,EXIT
+	$COLON	1,'?',QUEST
+	.dw	AT,DOT,EXIT
 
 ;; Parsing
 
-;   parse       ( b u c -- b u delta ; <string> )
-;               Scan string delimited by c. Return found string and its offset.
+;   parse	( b u c -- b u delta ; <string> )
+;	Scan string delimited by c. Return found string and its offset.
 
-                $COLON  5,'parse',PARS
-                .dw      TEMP,STORE,OVER,TOR,DUPP
-                .dw      QBRAN,PARS8
-                .dw      DOLIT,1,SUBB,TEMP,AT,BLANK,EQUAL
-                .dw      QBRAN,PARS3
-                .dw      TOR
-PARS1:          .dw      BLANK,OVER,CAT          ;skip leading blanks ONLY
-                .dw      SUBB,ZLESS,INVER
-                .dw      QBRAN,PARS2
-                .dw      DOLIT,1,PLUS
-                .dw      DONXT,PARS1
-                .dw      RFROM,DROP,DOLIT,0,DUPP,EXIT
-PARS2:          .dw      RFROM
-PARS3:          .dw      OVER,SWAP
-                .dw      TOR
-PARS4:          .dw      TEMP,AT,OVER,CAT,SUBB   ;scan for delimiter
-                .dw      TEMP,AT,BLANK,EQUAL
-                .dw      QBRAN,PARS5
-                .dw      ZLESS
-PARS5:          .dw      QBRAN,PARS6
-                .dw      DOLIT,1,PLUS
-                .dw      DONXT,PARS4
-                .dw      DUPP,TOR
-                .dw      BRAN,PARS7
-PARS6:          .dw      RFROM,DROP,DUPP
-                .dw      DOLIT,1,PLUS,TOR
-PARS7:          .dw      OVER,SUBB
-                .dw      RFROM,RFROM,SUBB,EXIT
-PARS8:          .dw      OVER,RFROM,SUBB,EXIT
+	$COLON	5,'parse',PARS
+	.dw	TEMP,STORE,OVER,TOR,DUPP
+	.dw	QBRAN,PARS8
+	.dw	DOLIT,1,SUBB,TEMP,AT,BLANK,EQUAL
+	.dw	QBRAN,PARS3
+	.dw	TOR
+PARS1:	.dw	BLANK,OVER,CAT		;skip leading blanks ONLY
+	.dw	SUBB,ZLESS,INVER
+	.dw	QBRAN,PARS2
+	.dw	DOLIT,1,PLUS
+	.dw	DONXT,PARS1
+	.dw	RFROM,DROP,DOLIT,0,DUPP,EXIT
+PARS2:	.dw	RFROM
+PARS3:	.dw	OVER,SWAP
+	.dw	TOR
+PARS4:	.dw	TEMP,AT,OVER,CAT,SUBB	;scan for delimiter
+	.dw	TEMP,AT,BLANK,EQUAL
+	.dw	QBRAN,PARS5
+	.dw	ZLESS
+PARS5:	.dw	QBRAN,PARS6
+	.dw	DOLIT,1,PLUS
+	.dw	DONXT,PARS4
+	.dw	DUPP,TOR
+	.dw	BRAN,PARS7
+PARS6:	.dw	RFROM,DROP,DUPP
+	.dw	DOLIT,1,PLUS,TOR
+PARS7:	.dw	OVER,SUBB
+	.dw	RFROM,RFROM,SUBB,EXIT
+PARS8:	.dw	OVER,RFROM,SUBB,EXIT
 
-;   PARSE       ( c -- b u ; <string> )
-;               Scan input stream and return counted string delimited by c.
+;   PARSE	( c -- b u ; <string> )
+;	Scan input stream and return counted string delimited by c.
 
-                $COLON  5,'PARSE',PARSE
-                .dw      TOR,TIB,INN,AT,PLUS     ;current input buffer pointer
-                .dw      NTIB,AT,INN,AT,SUBB     ;remaining count
-                .dw      RFROM,PARS,INN,PSTOR,EXIT
+	$COLON	5,'PARSE',PARSE
+	.dw	TOR,TIB,INN,AT,PLUS	;current input buffer pointer
+	.dw	NTIB,AT,INN,AT,SUBB	;remaining count
+	.dw	RFROM,PARS,INN,PSTOR,EXIT
 
-;   .(          ( -- )
-;               Output following string up to next ) .
+;   .(		( -- )
+;	Output following string up to next ) .
 
-                $COLON  IMEDD+2,'.(',DOTPR
-                .dw      DOLIT,'),PARSE,TYPEE,EXIT
+	$COLON	IMEDD+2,'.(',DOTPR
+	.dw	DOLIT,'),PARSE,TYPEE,EXIT
 
-;   (           ( -- )
-;               Ignore following string up to next ) . A comment.
+;   (		( -- )
+;	Ignore following string up to next ) . A comment.
 
-                $COLON  IMEDD+1,'(',PAREN
-                .dw      DOLIT,'),PARSE,DDROP,EXIT
+	$COLON	IMEDD+1,'(',PAREN
+	.dw	DOLIT,'),PARSE,DDROP,EXIT
 
-;   \           ( -- )
-;               Ignore following text till the end of line.
+;   \		( -- )
+;	Ignore following text till the end of line.
 
-                $COLON  IMEDD+1,'\',BKSLA
-                .dw      NTIB,AT,INN,STORE,EXIT
+	$COLON	IMEDD+1,'\',BKSLA
+	.dw	NTIB,AT,INN,STORE,EXIT
 
-;   CHAR        ( -- c )
-;               Parse next word and return its first character.
+;   CHAR	( -- c )
+;	Parse next word and return its first character.
 
-                $COLON  4,'CHAR',CHAR
-                .dw      BLANK,PARSE,DROP,CAT,EXIT
+	$COLON	4,'CHAR',CHAR
+	.dw	BLANK,PARSE,DROP,CAT,EXIT
 
-;   TOKEN       ( -- a ; <string> )
-;               Parse a word from input stream and copy it to name dictionary.
+;   TOKEN	( -- a ; <string> )
+;	Parse a word from input stream and copy it to name dictionary.
 
-                $COLON  5,'TOKEN',TOKEN
-                .dw      BLANK,PARSE,DOLIT,31,MIN
-                .dw      NP,AT,OVER,SUBB,CELLM
-                .dw      PACKS,EXIT
+	$COLON	5,'TOKEN',TOKEN
+	.dw	BLANK,PARSE,DOLIT,31,MIN
+	.dw	NP,AT,OVER,SUBB,CELLM
+	.dw	PACKS,EXIT
 
-;   WORD        ( c -- a ; <string> )
-;               Parse a word from input stream and copy it to code dictionary.
+;   WORD	( c -- a ; <string> )
+;	Parse a word from input stream and copy it to code dictionary.
 
-                $COLON  4,'WORD',WORDD
-                .dw      PARSE,HERE,PACKS,EXIT
+	$COLON	4,'WORD',WORDD
+	.dw	PARSE,HERE,PACKS,EXIT
 
 ;; Dictionary search
 
-;   NAME>       ( na -- ca )
-;               Return a code address given a name address.
+;   NAME>	( na -- ca )
+;	Return a code address given a name address.
 
-                $COLON  5,'NAME>',NAMET
-                .dw      CELLM,CELLM,AT,EXIT
+	$COLON	5,'NAME>',NAMET
+	.dw	CELLM,CELLM,AT,EXIT
 
-;   SAME?       ( a a u -- a a f \ -0+ )
-;               Compare u cells in two strings. Return 0 if identical.
+;   SAME?	( a a u -- a a f \ -0+ )
+;	Compare u cells in two strings. Return 0 if identical.
 
-                $COLON  5,'SAME?',SAMEQ
-                .dw      TOR
-                .dw      BRAN,SAME2
-SAME1:          .dw      OVER,RAT,CELLS,PLUS,AT
-                .dw      OVER,RAT,CELLS,PLUS,AT
-                .dw      SUBB,QDUP
-                .dw      QBRAN,SAME2
-                .dw      RFROM,DROP,EXIT         ;strings not equal
-SAME2:          .dw      DONXT,SAME1
-                .dw      DOLIT,0,EXIT            ;strings equal
+	$COLON	5,'SAME?',SAMEQ
+	.dw	TOR
+	.dw	BRAN,SAME2
+SAME1:	.dw	OVER,RAT,CELLS,PLUS,AT
+	.dw	OVER,RAT,CELLS,PLUS,AT
+	.dw	SUBB,QDUP
+	.dw	QBRAN,SAME2
+	.dw	RFROM,DROP,EXIT	;strings not equal
+SAME2:	.dw	DONXT,SAME1
+	.dw	DOLIT,0,EXIT		;strings equal
 
-;   find        ( a va -- ca na | a F )
-;               Search a vocabulary for a string. Return ca and na if succeeded.
+;   find	( a va -- ca na | a F )
+;	Search a vocabulary for a string. Return ca and na if succeeded.
 
-                $COLON  4,'find',FIND
-                .dw      SWAP,DUPP,CAT
-                .dw      DOLIT,CELLL,SLASH,TEMP,STORE
-                .dw      DUPP,AT,TOR,CELLP,SWAP
-FIND1:          .dw      AT,DUPP
-                .dw      QBRAN,FIND6
-                .dw      DUPP,AT,DOLIT,MASKK,ANDD,RAT,XORR
-                .dw      QBRAN,FIND2
-                .dw      CELLP,DOLIT,-1          ;true flag
-                .dw      BRAN,FIND3
-FIND2:          .dw      CELLP,TEMP,AT,SAMEQ
-FIND3:          .dw      BRAN,FIND4
-FIND6:          .dw      RFROM,DROP
-                .dw      SWAP,CELLM,SWAP,EXIT
-FIND4:          .dw      QBRAN,FIND5
-                .dw      CELLM,CELLM
-                .dw      BRAN,FIND1
-FIND5:          .dw      RFROM,DROP,SWAP,DROP
-                .dw      CELLM
-                .dw      DUPP,NAMET,SWAP,EXIT
+	$COLON	4,'find',FIND
+	.dw	SWAP,DUPP,CAT
+	.dw	DOLIT,CELLL,SLASH,TEMP,STORE
+	.dw	DUPP,AT,TOR,CELLP,SWAP
+FIND1:	.dw	AT,DUPP
+	.dw	QBRAN,FIND6
+	.dw	DUPP,AT,DOLIT,MASKK,ANDD,RAT,XORR
+	.dw	QBRAN,FIND2
+	.dw	CELLP,DOLIT,-1		;true flag
+	.dw	BRAN,FIND3
+FIND2:	.dw	CELLP,TEMP,AT,SAMEQ
+FIND3:	.dw	BRAN,FIND4
+FIND6:	.dw	RFROM,DROP
+	.dw	SWAP,CELLM,SWAP,EXIT
+FIND4:	.dw	QBRAN,FIND5
+	.dw	CELLM,CELLM
+	.dw	BRAN,FIND1
+FIND5:	.dw	RFROM,DROP,SWAP,DROP
+	.dw	CELLM
+	.dw	DUPP,NAMET,SWAP,EXIT
 
-;   NAME?       ( a -- ca na | a F )
-;               Search all context vocabularies for a string.
+;   NAME?	( a -- ca na | a F )
+;	Search all context vocabularies for a string.
 
-                $COLON  5,'NAME?',NAMEQ
-                .dw      CNTXT,DUPP,DAT,XORR     ;?context=also
-                .dw      QBRAN,NAMQ1
-                .dw      CELLM                   ;no, start with context
-NAMQ1:          .dw      TOR
-NAMQ2:          .dw      RFROM,CELLP,DUPP,TOR    ;next in search order
-                .dw      AT,QDUP
-                .dw      QBRAN,NAMQ3
-                .dw      FIND,QDUP               ;search vocabulary
-                .dw      QBRAN,NAMQ2
-                .dw      RFROM,DROP,EXIT         ;found name
-NAMQ3:          .dw      RFROM,DROP              ;name not found
-                .dw      DOLIT,0,EXIT            ;false flag
+	$COLON	5,'NAME?',NAMEQ
+	.dw	CNTXT,DUPP,DAT,XORR	;?context=also
+	.dw	QBRAN,NAMQ1
+	.dw	CELLM			;no, start with context
+NAMQ1:	.dw	TOR
+NAMQ2:	.dw	RFROM,CELLP,DUPP,TOR	;next in search order
+	.dw	AT,QDUP
+	.dw	QBRAN,NAMQ3
+	.dw	FIND,QDUP		;search vocabulary
+	.dw	QBRAN,NAMQ2
+	.dw	RFROM,DROP,EXIT	;found name
+NAMQ3:	.dw	RFROM,DROP		;name not found
+	.dw	DOLIT,0,EXIT		;false flag
 
 ;; Terminal response
 
-;   ^H          ( bot eot cur -- bot eot cur )
-;               Backup the cursor by one character.
+;   ^H		( bot eot cur -- bot eot cur )
+;	Backup the cursor by one character.
 
-                $COLON  2,'^H',BKSP
-                .dw      TOR,OVER,RFROM,SWAP,OVER,XORR
-                .dw      QBRAN,BACK1
-                .dw      DOLIT,BKSPP,TECHO,ATEXE,DOLIT,1,SUBB
-                .dw      BLANK,TECHO,ATEXE
-                .dw      DOLIT,BKSPP,TECHO,ATEXE
-BACK1:          .dw      EXIT
+	$COLON	2,'^H',BKSP
+	.dw	TOR,OVER,RFROM,SWAP,OVER,XORR
+	.dw	QBRAN,BACK1
+	.dw	DOLIT,BKSPP,TECHO,ATEXE,DOLIT,1,SUBB
+	.dw	BLANK,TECHO,ATEXE
+	.dw	DOLIT,BKSPP,TECHO,ATEXE
+BACK1:	.dw	EXIT
 
-;   TAP         ( bot eot cur c -- bot eot cur )
-;               Accept and echo the key stroke and bump the cursor.
+;   TAP		( bot eot cur c -- bot eot cur )
+;	Accept and echo the key stroke and bump the cursor.
 
-                $COLON  3,'TAP',TAP
-                .dw      DUPP,TECHO,ATEXE
-                .dw      OVER,CSTOR,DOLIT,1,PLUS,EXIT
+	$COLON	3,'TAP',TAP
+	.dw	DUPP,TECHO,ATEXE
+	.dw	OVER,CSTOR,DOLIT,1,PLUS,EXIT
 
-;   kTAP        ( bot eot cur c -- bot eot cur )
-;               Process a key stroke, CR or backspace.
+;   kTAP	( bot eot cur c -- bot eot cur )
+;	Process a key stroke, CR or backspace.
 
-                $COLON  4,'kTAP',KTAP
-                .dw      DUPP,DOLIT,CRR,XORR
-                .dw      QBRAN,KTAP2
-                .dw      DOLIT,BKSPP,XORR
-                .dw      QBRAN,KTAP1
-                .dw      BLANK,TAP,EXIT
-KTAP1:          .dw      BKSP,EXIT
-KTAP2:          .dw      DROP,SWAP,DROP,DUPP,EXIT
+	$COLON	4,'kTAP',KTAP
+	.dw	DUPP,DOLIT,CRR,XORR
+	.dw	QBRAN,KTAP2
+	.dw	DOLIT,BKSPP,XORR
+	.dw	QBRAN,KTAP1
+	.dw	BLANK,TAP,EXIT
+KTAP1:	.dw	BKSP,EXIT
+KTAP2:	.dw	DROP,SWAP,DROP,DUPP,EXIT
 
-;   accept      ( b u -- b u )
-;               Accept characters to input buffer. Return with actual count.
+;   accept	( b u -- b u )
+;	Accept characters to input buffer. Return with actual count.
 
-                $COLON  6,'accept',ACCEP
-                .dw      OVER,PLUS,OVER
-ACCP1:          .dw      DDUP,XORR
-                .dw      QBRAN,ACCP4
-                .dw      KEY,DUPP
-;               .dw      BLANK,SUBB,DOLIT,95,ULESS
-                .dw      BLANK,DOLIT,127,WITHI
-                .dw      QBRAN,ACCP2
-                .dw      TAP
-                .dw      BRAN,ACCP3
-ACCP2:          .dw      TTAP,ATEXE
-ACCP3:          .dw      BRAN,ACCP1
-ACCP4:          .dw      DROP,OVER,SUBB,EXIT
+	$COLON	6,'accept',ACCEP
+	.dw	OVER,PLUS,OVER
+ACCP1:	.dw	DDUP,XORR
+	.dw	QBRAN,ACCP4
+	.dw	KEY,DUPP
+;	.dw	BLANK,SUBB,DOLIT,95,ULESS
+	.dw	BLANK,DOLIT,127,WITHI
+	.dw	QBRAN,ACCP2
+	.dw	TAP
+	.dw	BRAN,ACCP3
+ACCP2:	.dw	TTAP,ATEXE
+ACCP3:	.dw	BRAN,ACCP1
+ACCP4:	.dw	DROP,OVER,SUBB,EXIT
 
-;   EXPECT      ( b u -- )
-;               Accept input stream and store count in SPAN.
+;   EXPECT	( b u -- )
+;	Accept input stream and store count in SPAN.
 
-                $COLON  6,'EXPECT',EXPEC
-                .dw      TEXPE,ATEXE,SPAN,STORE,DROP,EXIT
+	$COLON	6,'EXPECT',EXPEC
+	.dw	TEXPE,ATEXE,SPAN,STORE,DROP,EXIT
 
-;   QUERY       ( -- )
-;               Accept input stream to terminal input buffer.
+;   QUERY	( -- )
+;	Accept input stream to terminal input buffer.
 
-                $COLON  5,'QUERY',QUERY
-                .dw      TIB,DOLIT,80,TEXPE,ATEXE,NTIB,STORE
-                .dw      DROP,DOLIT,0,INN,STORE,EXIT
+	$COLON	5,'QUERY',QUERY
+	.dw	TIB,DOLIT,80,TEXPE,ATEXE,NTIB,STORE
+	.dw	DROP,DOLIT,0,INN,STORE,EXIT
 
 ;; Error handling
 
-;   CATCH       ( ca -- 0 | err# )
-;               Execute word at ca and set up an error frame for it.
+;   CATCH	( ca -- 0 | err# )
+;	Execute word at ca and set up an error frame for it.
 
-                $COLON  5,'CATCH',CATCH
-                .dw      SPAT,TOR,HANDL,AT,TOR   ;save error frame
-                .dw      RPAT,HANDL,STORE,EXECU  ;execute
-                .dw      RFROM,HANDL,STORE       ;restore error frame
-                .dw      RFROM,DROP,DOLIT,0,EXIT ;no error
+	$COLON	5,'CATCH',CATCH
+	.dw	SPAT,TOR,HANDL,AT,TOR	;save error frame
+	.dw	RPAT,HANDL,STORE,EXECU	;execute
+	.dw	RFROM,HANDL,STORE	;restore error frame
+	.dw	RFROM,DROP,DOLIT,0,EXIT ;no error
 
-;   THROW       ( err# -- err# )
-;               Reset system to current local error frame an update error flag.
+;   THROW	( err# -- err# )
+;	Reset system to current local error frame an update error flag.
 
-                $COLON  5,'THROW',THROW
-                .dw      HANDL,AT,RPSTO          ;restore return stack
-                .dw      RFROM,HANDL,STORE       ;restore handler frame
-                .dw      RFROM,SWAP,TOR,SPSTO    ;restore data stack
-                .dw      DROP,RFROM,EXIT
+	$COLON	5,'THROW',THROW
+	.dw	HANDL,AT,RPSTO		;restore return stack
+	.dw	RFROM,HANDL,STORE	;restore handler frame
+	.dw	RFROM,SWAP,TOR,SPSTO	;restore data stack
+	.dw	DROP,RFROM,EXIT
 
-;   NULL$       ( -- a )
-;               Return address of a null string with zero count.
+;   NULL$	( -- a )
+;	Return address of a null string with zero count.
 
-                $COLON  5,'NULL$',NULLS
-                .dw      DOVAR                   ;emulate CREATE
-                .dw      0
-                .db      99,111,121,111,116,101
-                $ALIGN
+	$COLON	5,'NULL$',NULLS
+	.dw	DOVAR			;emulate CREATE
+	.dw	0
+	.db	99,111,121,111,116,101
+	$ALIGN
 
-;   ABORT       ( -- )
-;               Reset data stack and jump to QUIT.
+;   ABORT	( -- )
+;	Reset data stack and jump to QUIT.
 
-                $COLON  5,'ABORT',ABORT
-                .dw      NULLS,THROW
+	$COLON	5,'ABORT',ABORT
+	.dw	NULLS,THROW
 
-;   abort"      ( f -- )
-;               Run time routine of ABORT" . Abort with a message.
+;   abort"	( f -- )
+;	Run time routine of ABORT" . Abort with a message.
 
-                $COLON  COMPO+6,'abort"',ABORQ
-                .dw      QBRAN,ABOR1             ;text flag
-                .dw      DOSTR,THROW             ;pass error string
-ABOR1:          .dw      DOSTR,DROP,EXIT         ;drop error
+	$COLON	COMPO+6,'abort"',ABORQ
+	.dw	QBRAN,ABOR1		;text flag
+	.dw	DOSTR,THROW		;pass error string
+ABOR1:	.dw	DOSTR,DROP,EXIT	;drop error
 
 ;; The text interpreter
 
-;   $INTERPRET  ( a -- )
-;               Interpret a word. If failed, try to convert it to an integer.
+;   $INTERPRET	( a -- )
+;	Interpret a word. If failed, try to convert it to an integer.
 
-                $COLON  10,'$INTERPRET',INTER
-                .dw      NAMEQ,QDUP              ;?defined
-                .dw      QBRAN,INTE1
-                .dw      AT,DOLIT,COMPO,ANDD     ;?compile only lexicon bits
-                D$      ABORQ,'\040compile\040only'
-                .dw      EXECU,EXIT              ;execute defined word
-INTE1:          .dw      TNUMB,ATEXE             ;convert a number
-                .dw      QBRAN,INTE2
-                .dw      EXIT
-INTE2:          .dw      THROW                   ;error
+	$COLON	10,'$INTERPRET',INTER
+	.dw	NAMEQ,QDUP		;?defined
+	.dw	QBRAN,INTE1
+	.dw	AT,DOLIT,COMPO,ANDD	;?compile only lexicon bits
+	D$	ABORQ,'\040compile\040only'
+	.dw	EXECU,EXIT		;execute defined word
+INTE1:	.dw	TNUMB,ATEXE		;convert a number
+	.dw	QBRAN,INTE2
+	.dw	EXIT
+INTE2:	.dw	THROW			;error
 
-;   [           ( -- )
-;               Start the text interpreter.
+;   [		( -- )
+;	Start the text interpreter.
 
-                $COLON  IMEDD+1,'[',LBRAC
-                .dw      DOLIT,INTER,TEVAL,STORE,EXIT
+	$COLON	IMEDD+1,'[',LBRAC
+	.dw	DOLIT,INTER,TEVAL,STORE,EXIT
 
-;   .OK         ( -- )
-;               Display 'ok' only while interpreting.
+;   .OK		( -- )
+;	Display 'ok' only while interpreting.
 
-                $COLON  3,'.OK',DOTOK
-                .dw      DOLIT,INTER,TEVAL,AT,EQUAL
-                .dw      QBRAN,DOTO1
-                D$      DOTQP,'\040ok'
-DOTO1:          .dw      CR,EXIT
+	$COLON	3,'.OK',DOTOK
+	.dw	DOLIT,INTER,TEVAL,AT,EQUAL
+	.dw	QBRAN,DOTO1
+	D$	DOTQP,'\040ok'
+DOTO1:	.dw	CR,EXIT
 
-;   ?STACK      ( -- )
-;               Abort if the data stack underflows.
+;   ?STACK	( -- )
+;	Abort if the data stack underflows.
 
-                $COLON  6,'?STACK',QSTAC
-                .dw      DEPTH,ZLESS             ;check only for underflow
-                D$      ABORQ,'\040underflow'
-                .dw      EXIT
+	$COLON	6,'?STACK',QSTAC
+	.dw	DEPTH,ZLESS		;check only for underflow
+	D$	ABORQ,'\040underflow'
+	.dw	EXIT
 
-;   EVAL        ( -- )
-;               Interpret the input stream.
+;   EVAL	( -- )
+;	Interpret the input stream.
 
-                $COLON  4,'EVAL',EVAL
-EVAL1:          .dw      TOKEN,DUPP,CAT          ;?input stream empty
-                .dw      QBRAN,EVAL2
-                .dw      TEVAL,ATEXE,QSTAC       ;evaluate input, check stack
-                .dw      BRAN,EVAL1
-EVAL2:          .dw      DROP,TPROM,ATEXE,EXIT   ;prompt
+	$COLON	4,'EVAL',EVAL
+EVAL1:	.dw	TOKEN,DUPP,CAT		;?input stream empty
+	.dw	QBRAN,EVAL2
+	.dw	TEVAL,ATEXE,QSTAC	;evaluate input, check stack
+	.dw	BRAN,EVAL1
+EVAL2:	.dw	DROP,TPROM,ATEXE,EXIT	;prompt
 
 ;; Shell
 
-;   PRESET      ( -- )
-;               Reset data stack pointer and the terminal input buffer.
+;   PRESET	( -- )
+;	Reset data stack pointer and the terminal input buffer.
 
-                $COLON  6,'PRESET',PRESE
-                .dw      SZERO,AT,SPSTO
-                .dw      DOLIT,TIBB,NTIB,CELLP,STORE,EXIT
+	$COLON	6,'PRESET',PRESE
+	.dw	SZERO,AT,SPSTO
+	.dw	DOLIT,TIBB,NTIB,CELLP,STORE,EXIT
 
-;   xio         ( a a a -- )
-;               Reset the I/O vectors 'EXPECT, 'TAP, 'ECHO and 'PROMPT.
+;   xio		( a a a -- )
+;	Reset the I/O vectors 'EXPECT, 'TAP, 'ECHO and 'PROMPT.
 
-                $COLON  COMPO+3,'xio',XIO
-                .dw      DOLIT,ACCEP,TEXPE,DSTOR
-                .dw      TECHO,DSTOR,EXIT
+	$COLON	COMPO+3,'xio',XIO
+	.dw	DOLIT,ACCEP,TEXPE,DSTOR
+	.dw	TECHO,DSTOR,EXIT
 
-;   FILE        ( -- )
-;               Select I/O vectors for file download.
+;   FILE	( -- )
+;	Select I/O vectors for file download.
 
-                $COLON  4,'FILE',FILE
-                .dw      DOLIT,PACE,DOLIT,DROP
-                .dw      DOLIT,KTAP,XIO,EXIT
+	$COLON	4,'FILE',FILE
+	.dw	DOLIT,PACE,DOLIT,DROP
+	.dw	DOLIT,KTAP,XIO,EXIT
 
-;   HAND        ( -- )
-;               Select I/O vectors for terminal interface.
+;   HAND	( -- )
+;	Select I/O vectors for terminal interface.
 
-                $COLON  4,'HAND',HAND
-                .dw      DOLIT,DOTOK,DOLIT,EMIT
-                .dw      DOLIT,KTAP,XIO,EXIT
+	$COLON	4,'HAND',HAND
+	.dw	DOLIT,DOTOK,DOLIT,EMIT
+	.dw	DOLIT,KTAP,XIO,EXIT
 
-;   I/O         ( -- a )
-;               Array to store default I/O vectors.
+;   I/O		( -- a )
+;	Array to store default I/O vectors.
 
-                $COLON  3,'I/O',ISLO
-                .dw      DOVAR                   ;emulate CREATE
-                .dw      QRX,TXSTO               ;default I/O vectors
+	$COLON	3,'I/O',ISLO
+	.dw	DOVAR			;emulate CREATE
+	.dw	QRX,TXSTO		;default I/O vectors
 
-;   CONSOLE     ( -- )
-;               Initiate terminal interface.
+;   CONSOLE	( -- )
+;	Initiate terminal interface.
 
-                $COLON  7,'CONSOLE',CONSO
-                .dw      ISLO,DAT,TQKEY,DSTOR    ;restore default I/O device
-                .dw      HAND,EXIT               ;keyboard input
+	$COLON	7,'CONSOLE',CONSO
+	.dw	ISLO,DAT,TQKEY,DSTOR	;restore default I/O device
+	.dw	HAND,EXIT		;keyboard input
 
-;   QUIT        ( -- )
-;               Reset return stack pointer and start text interpreter.
+;   QUIT	( -- )
+;	Reset return stack pointer and start text interpreter.
 
-                $COLON  4,'QUIT',QUIT
-                .dw      RZERO,AT,RPSTO          ;reset return stack pointer
-QUIT1:          .dw      LBRAC                   ;start interpretation
-QUIT2:          .dw      QUERY                   ;get input
-                .dw      DOLIT,EVAL,CATCH,QDUP   ;evaluate input
-                .dw      QBRAN,QUIT2             ;continue till error
-                .dw      TPROM,AT,SWAP           ;save input device
-                .dw      CONSO,NULLS,OVER,XORR   ;?display error message
-                .dw      QBRAN,QUIT3
-                .dw      SPACE,COUNT,TYPEE       ;error message
-                D$      DOTQP,'\040?\040'             ;error prompt
-QUIT3:          .dw      DOLIT,DOTOK,XORR        ;?file input
-                .dw      QBRAN,QUIT4
-                .dw      DOLIT,ERR,EMIT          ;file error, tell host
-QUIT4:          .dw      PRESE                   ;some cleanup
-                .dw      BRAN,QUIT1
+	$COLON	4,'QUIT',QUIT
+	.dw	RZERO,AT,RPSTO		;reset return stack pointer
+QUIT1:	.dw	LBRAC			;start interpretation
+QUIT2:	.dw	QUERY			;get input
+	.dw	DOLIT,EVAL,CATCH,QDUP	;evaluate input
+	.dw	QBRAN,QUIT2		;continue till error
+	.dw	TPROM,AT,SWAP		;save input device
+	.dw	CONSO,NULLS,OVER,XORR	;?display error message
+	.dw	QBRAN,QUIT3
+	.dw	SPACE,COUNT,TYPEE	;error message
+	D$	DOTQP,'\040?\040'	;error prompt
+QUIT3:	.dw	DOLIT,DOTOK,XORR	;?file input
+	.dw	QBRAN,QUIT4
+	.dw	DOLIT,ERR,EMIT		;file error, tell host
+QUIT4:	.dw	PRESE			;some cleanup
+	.dw	BRAN,QUIT1
 
 ;; The compiler
 
-;   '           ( -- ca )
-;               Search context vocabularies for the next word in input stream.
+;   '		( -- ca )
+;	Search context vocabularies for the next word in input stream.
 
-                $COLON  1,'\047',TICK
-                .dw      TOKEN,NAMEQ             ;?defined
-                .dw      QBRAN,TICK1
-                .dw      EXIT                    ;yes, push code address
-TICK1:          .dw      THROW                   ;no, error
+	$COLON	1,'\047',TICK
+	.dw	TOKEN,NAMEQ		;?defined
+	.dw	QBRAN,TICK1
+	.dw	EXIT			;yes, push code address
+TICK1:	.dw	THROW			;no, error
 
-;   ALLOT       ( n -- )
-;               Allocate n bytes to the code dictionary.
+;   ALLOT	( n -- )
+;	Allocate n bytes to the code dictionary.
 
-                $COLON  5,'ALLOT',ALLOT
-                .dw      CP,PSTOR,EXIT           ;adjust code pointer
+	$COLON	5,'ALLOT',ALLOT
+	.dw	CP,PSTOR,EXIT		;adjust code pointer
 
-;   ,           ( w -- )
-;               Compile an integer into the code dictionary.
+;   ,		( w -- )
+;	Compile an integer into the code dictionary.
 
-                $COLON  1,'\054',COMMA		; FIX!
-                .dw      HERE,DUPP,CELLP         ;cell boundary
-                .dw      CP,STORE,STORE,EXIT     ;adjust code pointer, compile
+	$COLON	1,'\054',COMMA		;
+	.dw	HERE,DUPP,CELLP	;cell boundary
+	.dw	CP,STORE,STORE,EXIT	;adjust code pointer, compile
 
-;   [COMPILE]   ( -- ; <string> )
-;               Compile the next immediate word into code dictionary.
+;   [COMPILE]	( -- ; <string> )
+;	Compile the next immediate word into code dictionary.
 
-                $COLON  IMEDD+9,'[COMPILE]',BCOMP
-                .dw      TICK,COMMA,EXIT
+	$COLON	IMEDD+9,'[COMPILE]',BCOMP
+	.dw	TICK,COMMA,EXIT
 
-;   COMPILE     ( -- )
-;               Compile the next address in colon list to code dictionary.
+;   COMPILE	( -- )
+;	Compile the next address in colon list to code dictionary.
 
-                $COLON  COMPO+7,'COMPILE',COMPI
-                .dw      RFROM,DUPP,AT,COMMA     ;compile address
-                .dw      CELLP,TOR,EXIT          ;adjust return address
+	$COLON	COMPO+7,'COMPILE',COMPI
+	.dw	RFROM,DUPP,AT,COMMA	;compile address
+	.dw	CELLP,TOR,EXIT		;adjust return address
 
-;   LITERAL     ( w -- )
-;               Compile tos to code dictionary as an integer literal.
+;   LITERAL	( w -- )
+;	Compile tos to code dictionary as an integer literal.
 
-                $COLON  IMEDD+7,'LITERAL',LITER
-                .dw      COMPI,DOLIT,COMMA,EXIT
+	$COLON	IMEDD+7,'LITERAL',LITER
+	.dw	COMPI,DOLIT,COMMA,EXIT
 
-;   $,"         ( -- )
-;               Compile a literal string up to next " .
+;   $,"		( -- )
+;	Compile a literal string up to next " .
 
-                $COLON  3,'$\054"',STRCQ		; FIX!
-                .dw      DOLIT,'",WORDD         ;move string to code dictionary
-                .dw      COUNT,PLUS,ALGND        ;calculate aligned end of string
-                .dw      CP,STORE,EXIT           ;adjust the code pointer
+	$COLON	3,'$\054"',STRCQ		;
+	.dw	DOLIT,'",WORDD		;move string to code dictionary
+	.dw	COUNT,PLUS,ALGND	;calculate aligned end of string
+	.dw	CP,STORE,EXIT		;adjust the code pointer
 
-;   RECURSE     ( -- )
-;               Make the current word available for compilation.
+;   RECURSE	( -- )
+;	Make the current word available for compilation.
 
-                $COLON  IMEDD+7,'RECURSE',RECUR
-                .dw      LAST,AT,NAMET,COMMA,EXIT
+	$COLON	IMEDD+7,'RECURSE',RECUR
+	.dw	LAST,AT,NAMET,COMMA,EXIT
 
 ;; Structures
 
-;   FOR         ( -- a )
-;               Start a FOR-NEXT loop structure in a colon definition.
+;   FOR		( -- a )
+;	Start a FOR-NEXT loop structure in a colon definition.
 
-                $COLON  IMEDD+3,'FOR',FORL
-                .dw      COMPI,TOR,HERE,EXIT
+	$COLON	IMEDD+3,'FOR',FORL
+	.dw	COMPI,TOR,HERE,EXIT
 
-;   BEGIN       ( -- a )
-;               Start an infinite or indefinite loop structure.
+;   BEGIN	( -- a )
+;	Start an infinite or indefinite loop structure.
 
-                $COLON  IMEDD+5,'BEGIN',BEGIN
-                .dw      HERE,EXIT
+	$COLON	IMEDD+5,'BEGIN',BEGIN
+	.dw	HERE,EXIT
 
-;   NEXT        ( a -- )
-;               Terminate a FOR-NEXT loop structure.
+;   NEXT	( a -- )
+;	Terminate a FOR-NEXT loop structure.
 
-                $COLON  IMEDD+4,'NEXT',NEXT
-                .dw      COMPI,DONXT,COMMA,EXIT
+	$COLON	IMEDD+4,'NEXT',NEXT
+	.dw	COMPI,DONXT,COMMA,EXIT
 
-;   UNTIL       ( a -- )
-;               Terminate a BEGIN-UNTIL indefinite loop structure.
+;   UNTIL	( a -- )
+;	Terminate a BEGIN-UNTIL indefinite loop structure.
 
-                $COLON  IMEDD+5,'UNTIL',UNTIL
-                .dw      COMPI,QBRAN,COMMA,EXIT
+	$COLON	IMEDD+5,'UNTIL',UNTIL
+	.dw	COMPI,QBRAN,COMMA,EXIT
 
-;   AGAIN       ( a -- )
-;               Terminate a BEGIN-AGAIN infinite loop structure.
+;   AGAIN	( a -- )
+;	Terminate a BEGIN-AGAIN infinite loop structure.
 
-                $COLON  IMEDD+5,'AGAIN',AGAIN
-                .dw      COMPI,BRAN,COMMA,EXIT
+	$COLON	IMEDD+5,'AGAIN',AGAIN
+	.dw	COMPI,BRAN,COMMA,EXIT
 
-;   IF          ( -- A )
-;               Begin a conditional branch structure.
+;   IF		( -- A )
+;	Begin a conditional branch structure.
 
-                $COLON  IMEDD+2,'IF',IFF
-                .dw      COMPI,QBRAN,HERE
-                .dw      DOLIT,0,COMMA,EXIT
+	$COLON	IMEDD+2,'IF',IFF
+	.dw	COMPI,QBRAN,HERE
+	.dw	DOLIT,0,COMMA,EXIT
 
-;   AHEAD       ( -- A )
-;               Compile a forward branch instruction.
+;   AHEAD	( -- A )
+;	Compile a forward branch instruction.
 
-                $COLON  IMEDD+5,'AHEAD',AHEAD
-                .dw      COMPI,BRAN,HERE,DOLIT,0,COMMA,EXIT
+	$COLON	IMEDD+5,'AHEAD',AHEAD
+	.dw	COMPI,BRAN,HERE,DOLIT,0,COMMA,EXIT
 
-;   REPEAT      ( A a -- )
-;               Terminate a BEGIN-WHILE-REPEAT indefinite loop.
+;   REPEAT	( A a -- )
+;	Terminate a BEGIN-WHILE-REPEAT indefinite loop.
 
-                $COLON  IMEDD+6,'REPEAT',REPEA
-                .dw      AGAIN,HERE,SWAP,STORE,EXIT
+	$COLON	IMEDD+6,'REPEAT',REPEA
+	.dw	AGAIN,HERE,SWAP,STORE,EXIT
 
-;   THEN        ( A -- )
-;               Terminate a conditional branch structure.
+;   THEN	( A -- )
+;	Terminate a conditional branch structure.
 
-                $COLON  IMEDD+4,'THEN',THENN
-                .dw      HERE,SWAP,STORE,EXIT
+	$COLON	IMEDD+4,'THEN',THENN
+	.dw	HERE,SWAP,STORE,EXIT
 
-;   AFT         ( a -- a A )
-;               Jump to THEN in a FOR-AFT-THEN-NEXT loop the 1st time through.
+;   AFT		( a -- a A )
+;	Jump to THEN in a FOR-AFT-THEN-NEXT loop the 1st time through.
 
-                $COLON  IMEDD+3,'AFT',AFT
-                .dw      DROP,AHEAD,BEGIN,SWAP,EXIT
+	$COLON	IMEDD+3,'AFT',AFT
+	.dw	DROP,AHEAD,BEGIN,SWAP,EXIT
 
-;   ELSE        ( A -- A )
-;               Start the false clause in an IF-ELSE-THEN structure.
+;   ELSE	( A -- A )
+;	Start the false clause in an IF-ELSE-THEN structure.
 
-                $COLON  IMEDD+4,'ELSE',ELSEE
-                .dw      AHEAD,SWAP,THENN,EXIT
+	$COLON	IMEDD+4,'ELSE',ELSEE
+	.dw	AHEAD,SWAP,THENN,EXIT
 
-;   WHILE       ( a -- A a )
-;               Conditional branch out of a BEGIN-WHILE-REPEAT loop.
+;   WHILE	( a -- A a )
+;	Conditional branch out of a BEGIN-WHILE-REPEAT loop.
 
-                $COLON  IMEDD+5,'WHILE',WHILEL
-                .dw      IFF,SWAP,EXIT
+	$COLON	IMEDD+5,'WHILE',WHILEL
+	.dw	IFF,SWAP,EXIT
 
-;   ABORT"      ( -- ; <string> )
-;               Conditional abort with an error message.
+;   ABORT"	( -- ; <string> )
+;	Conditional abort with an error message.
 
-                $COLON  IMEDD+6,'ABORT"',ABRTQ
-                .dw      COMPI,ABORQ,STRCQ,EXIT
+	$COLON	IMEDD+6,'ABORT"',ABRTQ
+	.dw	COMPI,ABORQ,STRCQ,EXIT
 
-;   $"          ( -- ; <string> )
-;               Compile an inline string literal.
+;   $"		( -- ; <string> )
+;	Compile an inline string literal.
 
-                $COLON  IMEDD+2,'$"',STRQ
-                .dw      COMPI,STRQP,STRCQ,EXIT
+	$COLON	IMEDD+2,'$"',STRQ
+	.dw	COMPI,STRQP,STRCQ,EXIT
 
-;   ."          ( -- ; <string> )
-;               Compile an inline string literal to be typed out at run time.
+;   ."		( -- ; <string> )
+;	Compile an inline string literal to be typed out at run time.
 
-                $COLON  IMEDD+2,'."',DOTQ
-                .dw      COMPI,DOTQP,STRCQ,EXIT
+	$COLON	IMEDD+2,'."',DOTQ
+	.dw	COMPI,DOTQP,STRCQ,EXIT
 
 ;; Name compiler
 
-;   ?UNIQUE     ( a -- a )
-;               Display a warning message if the word already exists.
+;   ?UNIQUE	( a -- a )
+;	Display a warning message if the word already exists.
 
-                $COLON  7,'?UNIQUE',UNIQU
-                .dw      DUPP,NAMEQ              ;?name exists
-                .dw      QBRAN,UNIQ1             ;redefinitions are OK
-                D$      DOTQP,'\040reDef\040'         ;but warn the user
-                .dw      OVER,COUNT,TYPEE        ;just in case its not planned
-UNIQ1:          .dw      DROP,EXIT
+	$COLON	7,'?UNIQUE',UNIQU
+	.dw	DUPP,NAMEQ		;?name exists
+	.dw	QBRAN,UNIQ1		;redefinitions are OK
+	D$	DOTQP,'\040reDef\040'	;but warn the user
+	.dw	OVER,COUNT,TYPEE	;just in case its not planned
+UNIQ1:	.dw	DROP,EXIT
 
-;   $,n         ( na -- )
-;               Build a new dictionary name using the string at na.
+;   $,n		( na -- )
+;	Build a new dictionary name using the string at na.
 
-                $COLON  3,'$\054n',SNAME		; FIX
-                .dw      DUPP,CAT                ;?null input
-                .dw      QBRAN,PNAM1
-                .dw      UNIQU                   ;?redefinition
-                .dw      DUPP,LAST,STORE         ;save na for vocabulary link
-                .dw      HERE,ALGND,SWAP         ;align code address
-                .dw      CELLM                   ;link address
-                .dw      CRRNT,AT,AT,OVER,STORE
-                .dw      CELLM,DUPP,NP,STORE     ;adjust name pointer
-                .dw      STORE,EXIT              ;save code pointer
-PNAM1:          D$      STRQP,'\040name'           ;null input
-                .dw      THROW
+	$COLON	3,'$\054n',SNAME
+	.dw	DUPP,CAT		;?null input
+	.dw	QBRAN,PNAM1
+	.dw	UNIQU			;?redefinition
+	.dw	DUPP,LAST,STORE	;save na for vocabulary link
+	.dw	HERE,ALGND,SWAP	;align code address
+	.dw	CELLM			;link address
+	.dw	CRRNT,AT,AT,OVER,STORE
+	.dw	CELLM,DUPP,NP,STORE	;adjust name pointer
+	.dw	STORE,EXIT		;save code pointer
+PNAM1:	D$	STRQP,'\040name'	;null input
+	.dw	THROW
 
 ;; FORTH compiler
 
-;   $COMPILE    ( a -- )
-;               Compile next word to code dictionary as a token or literal.
+;   $COMPILE	( a -- )
+;	Compile next word to code dictionary as a token or literal.
 
-                $COLON  8,'$COMPILE',SCOMP
-                .dw      NAMEQ,QDUP              ;?defined
-                .dw      QBRAN,SCOM2
-                .dw      AT,DOLIT,IMEDD,ANDD     ;?immediate
-                .dw      QBRAN,SCOM1
-                .dw      EXECU,EXIT              ;its immediate, execute
-SCOM1:          .dw      COMMA,EXIT              ;its not immediate, compile
-SCOM2:          .dw      TNUMB,ATEXE             ;try to convert to number
-                .dw      QBRAN,SCOM3
-                .dw      LITER,EXIT              ;compile number as integer
-SCOM3:          .dw      THROW                   ;error
+	$COLON	8,'$COMPILE',SCOMP
+	.dw	NAMEQ,QDUP		;?defined
+	.dw	QBRAN,SCOM2
+	.dw	AT,DOLIT,IMEDD,ANDD	;?immediate
+	.dw	QBRAN,SCOM1
+	.dw	EXECU,EXIT		;its immediate, execute
+SCOM1:	.dw	COMMA,EXIT		;its not immediate, compile
+SCOM2:	.dw	TNUMB,ATEXE		;try to convert to number
+	.dw	QBRAN,SCOM3
+	.dw	LITER,EXIT		;compile number as integer
+SCOM3:	.dw	THROW			;error
 
-;   OVERT       ( -- )
-;               Link a new word into the current vocabulary.
+;   OVERT	( -- )
+;	Link a new word into the current vocabulary.
 
-                $COLON  5,'OVERT',OVERT
-                .dw      LAST,AT,CRRNT,AT,STORE,EXIT
+	$COLON	5,'OVERT',OVERT
+	.dw	LAST,AT,CRRNT,AT,STORE,EXIT
 
-;   ;           ( -- )
-;               Terminate a colon definition.
+;   ;		( -- )
+;	Terminate a colon definition.
 
-                $COLON  IMEDD+COMPO+1,'\073',SEMIS	; FIX!
-                .dw      COMPI,EXIT,LBRAC,OVERT,EXIT
+	$COLON	IMEDD+COMPO+1,'\073',SEMIS	
+	.dw	COMPI,EXIT,LBRAC,OVERT,EXIT
 
-;   ]           ( -- )
-;               Start compiling the words in the input stream.
+;   ]		( -- )
+;	Start compiling the words in the input stream.
 
-                $COLON  1,']',RBRAC
-                .dw      DOLIT,SCOMP,TEVAL,STORE,EXIT
+	$COLON	1,']',RBRAC
+	.dw	DOLIT,SCOMP,TEVAL,STORE,EXIT
 
-;   call,       ( ca -- )
-;               Assemble a call instruction to ca.
+;   call,	( ca -- )
+;	Assemble a call instruction to ca.
 
-                $COLON  5,'call\054',CALLC		; FIX!
-                .dw      DOLIT,CALLL,COMMA       ;Direct Threaded Code
-                .dw      COMMA,EXIT      ;DTC 8086 relative call
+	$COLON	5,'call\054',CALLC
+	.dw	DOLIT,CALLL,COMMA	;Direct Threaded Code
+	.dw	COMMA,EXIT	;DTC 8086 relative call
 
-;   :           ( -- ; <string> )
-;               Start a new colon definition using next word as its name.
+;   :		( -- ; <string> )
+;	Start a new colon definition using next word as its name.
 
-                $COLON  1,':',COLON
-                .dw      TOKEN,SNAME,DOLIT,DOLST
-                .dw      CALLC,RBRAC,EXIT
+	$COLON	1,':',COLON
+	.dw	TOKEN,SNAME,DOLIT,DOLST
+	.dw	CALLC,RBRAC,EXIT
 
-;   IMMEDIATE   ( -- )
-;               Make the last compiled word an immediate word.
+;   IMMEDIATE	( -- )
+;	Make the last compiled word an immediate word.
 
-                $COLON  9,'IMMEDIATE',IMMED
-                .dw      DOLIT,IMEDD,LAST,AT,AT,ORR
-                .dw      LAST,AT,STORE,EXIT
+	$COLON	9,'IMMEDIATE',IMMED
+	.dw	DOLIT,IMEDD,LAST,AT,AT,ORR
+	.dw	LAST,AT,STORE,EXIT
 
 ;; Defining words
 
-;   USER        ( u -- ; <string> )
-;               Compile a new user variable.
+;   USER	( u -- ; <string> )
+;	Compile a new user variable.
 
-                $COLON  4,'USER',USER
-                .dw      TOKEN,SNAME,OVERT
-                .dw      DOLIT,DOLST,CALLC
-                .dw      COMPI,DOUSE,COMMA,EXIT
+	$COLON	4,'USER',USER
+	.dw	TOKEN,SNAME,OVERT
+	.dw	DOLIT,DOLST,CALLC
+	.dw	COMPI,DOUSE,COMMA,EXIT
 
-;   CREATE      ( -- ; <string> )
-;               Compile a new array entry without allocating code space.
+;   CREATE	( -- ; <string> )
+;	Compile a new array entry without allocating code space.
 
-                $COLON  6,'CREATE',CREAT
-                .dw      TOKEN,SNAME,OVERT
-                .dw      DOLIT,DOLST,CALLC
-                .dw      COMPI,DOVAR,EXIT
+	$COLON	6,'CREATE',CREAT
+	.dw	TOKEN,SNAME,OVERT
+	.dw	DOLIT,DOLST,CALLC
+	.dw	COMPI,DOVAR,EXIT
 
-;   VARIABLE    ( -- ; <string> )
-;               Compile a new variable initialized to 0.
+;   VARIABLE	( -- ; <string> )
+;	Compile a new variable initialized to 0.
 
-                $COLON  8,'VARIABLE',VARIA
-                .dw      CREAT,DOLIT,0,COMMA,EXIT
+	$COLON	8,'VARIABLE',VARIA
+	.dw	CREAT,DOLIT,0,COMMA,EXIT
 
 ;; Tools
 
-;   _TYPE       ( b u -- )
-;               Display a string. Filter non-printing characters.
+;   _TYPE	( b u -- )
+;	Display a string. Filter non-printing characters.
 
-                $COLON  5,'_TYPE',UTYPE
-                .dw      TOR                     ;start count down loop
-                .dw      BRAN,UTYP2              ;skip first pass
-UTYP1:          .dw      DUPP,CAT,TCHAR,EMIT     ;display only printable
-                .dw      DOLIT,1,PLUS            ;increment address
-UTYP2:          .dw      DONXT,UTYP1             ;loop till done
-                .dw      DROP,EXIT
+	$COLON	5,'_TYPE',UTYPE
+	.dw	TOR			;start count down loop
+	.dw	BRAN,UTYP2		;skip first pass
+UTYP1:	.dw	DUPP,CAT,TCHAR,EMIT	;display only printable
+	.dw	DOLIT,1,PLUS		;increment address
+UTYP2:	.dw	DONXT,UTYP1		;loop till done
+	.dw	DROP,EXIT
 
-;   dm+         ( a u -- a )
-;               Dump u bytes from , leaving a+u on the stack.
+;   dm+		( a u -- a )
+;	Dump u bytes from , leaving a+u on the stack.
 
-                $COLON  3,'dm+',DMP
-                .dw      OVER,DOLIT,4,UDOTR      ;display address
-                .dw      SPACE,TOR               ;start count down loop
-                .dw      BRAN,PDUM2              ;skip first pass
-PDUM1:          .dw      DUPP,CAT,DOLIT,3,UDOTR  ;display numeric data
-                .dw      DOLIT,1,PLUS            ;increment address
-PDUM2:          .dw      DONXT,PDUM1             ;loop till done
-                .dw      EXIT
+	$COLON	3,'dm+',DMP
+	.dw	OVER,DOLIT,4,UDOTR	;display address
+	.dw	SPACE,TOR		;start count down loop
+	.dw	BRAN,PDUM2		;skip first pass
+PDUM1:	.dw	DUPP,CAT,DOLIT,3,UDOTR	;display numeric data
+	.dw	DOLIT,1,PLUS		;increment address
+PDUM2:	.dw	DONXT,PDUM1		;loop till done
+	.dw	EXIT
 
-;   DUMP        ( a u -- )
-;               Dump u bytes from a, in a formatted manner.
+;   DUMP	( a u -- )
+;	Dump u bytes from a, in a formatted manner.
 
-                $COLON  4,'DUMP',DUMP
-                .dw      BASE,AT,TOR,HEX         ;save radix, set hex
-                .dw      DOLIT,16,SLASH          ;change count to lines
-                .dw      TOR                     ;start count down loop
-DUMP1:          .dw      CR,DOLIT,16,DDUP,DMP    ;display numeric
-                .dw      ROT,ROT
-                .dw      SPACE,SPACE,UTYPE       ;display printable characters
-                .dw      NUFQ,INVER              ;user control
-                .dw      QBRAN,DUMP2
-                .dw      DONXT,DUMP1             ;loop till done
-                .dw      BRAN,DUMP3
-DUMP2:          .dw      RFROM,DROP              ;cleanup loop stack, early exit
-DUMP3:          .dw      DROP,RFROM,BASE,STORE   ;restore radix
-                .dw      EXIT
+	$COLON	4,'DUMP',DUMP
+	.dw	BASE,AT,TOR,HEX	;save radix, set hex
+	.dw	DOLIT,16,SLASH		;change count to lines
+	.dw	TOR			;start count down loop
+DUMP1:	.dw	CR,DOLIT,16,DDUP,DMP	;display numeric
+	.dw	ROT,ROT
+	.dw	SPACE,SPACE,UTYPE	;display printable characters
+	.dw	NUFQ,INVER		;user control
+	.dw	QBRAN,DUMP2
+	.dw	DONXT,DUMP1		;loop till done
+	.dw	BRAN,DUMP3
+DUMP2:	.dw	RFROM,DROP		;cleanup loop stack, early exit
+DUMP3:	.dw	DROP,RFROM,BASE,STORE	;restore radix
+	.dw	EXIT
 
-;   .S          ( ... -- ... )
-;               Display the contents of the data stack.
+;   .S		( ... -- ... )
+;	Display the contents of the data stack.
 
-                $COLON  2,'.S',DOTS
-                .dw      CR,DEPTH                ;stack depth
-                .dw      TOR                     ;start count down loop
-                .dw      BRAN,DOTS2              ;skip first pass
-DOTS1:          .dw      RAT,PICK,DOT            ;index stack, display contents
-DOTS2:          .dw      DONXT,DOTS1             ;loop till done
-                D$      DOTQP,'\040<sp'
-                .dw      EXIT
+	$COLON	2,'.S',DOTS
+	.dw	CR,DEPTH		;stack depth
+	.dw	TOR			;start count down loop
+	.dw	BRAN,DOTS2		;skip first pass
+DOTS1:	.dw	RAT,PICK,DOT		;index stack, display contents
+DOTS2:	.dw	DONXT,DOTS1		;loop till done
+	D$	DOTQP,'\040<sp'
+	.dw	EXIT
 
-;   !CSP        ( -- )
-;               Save stack pointer in CSP for error checking.
+;   !CSP	( -- )
+;	Save stack pointer in CSP for error checking.
 
-                $COLON  4,'!CSP',STCSP
-                .dw      SPAT,CSP,STORE,EXIT     ;save pointer
+	$COLON	4,'!CSP',STCSP
+	.dw	SPAT,CSP,STORE,EXIT	;save pointer
 
-;   ?CSP        ( -- )
-;               Abort if stack pointer differs from that saved in CSP.
+;   ?CSP	( -- )
+;	Abort if stack pointer differs from that saved in CSP.
 
-                $COLON  4,'?CSP',QCSP
-                .dw      SPAT,CSP,AT,XORR        ;compare pointers
-                D$      ABORQ,'stacks'          ;abort if different
-                .dw      EXIT
+	$COLON	4,'?CSP',QCSP
+	.dw	SPAT,CSP,AT,XORR	;compare pointers
+	D$	ABORQ,'stacks'		;abort if different
+	.dw	EXIT
 
-;   >NAME       ( ca -- na | F )
-;               Convert code address to a name address.
+;   >NAME	( ca -- na | F )
+;	Convert code address to a name address.
 
-                $COLON  5,'>NAME',TNAME
-                .dw      CRRNT                   ;vocabulary link
-TNAM1:          .dw      CELLP,AT,QDUP           ;check all vocabularies
-                .dw      QBRAN,TNAM4
-                .dw      DDUP
-TNAM2:          .dw      AT,DUPP                 ;?last word in a vocabulary
-                .dw      QBRAN,TNAM3
-                .dw      DDUP,NAMET,XORR         ;compare
-                .dw      QBRAN,TNAM3
-                .dw      CELLM                   ;continue with next word
-                .dw      BRAN,TNAM2
-TNAM3:          .dw      SWAP,DROP,QDUP
-                .dw      QBRAN,TNAM1
-                .dw      SWAP,DROP,SWAP,DROP,EXIT
-TNAM4:          .dw      DROP,DOLIT,0,EXIT       ;false flag
+	$COLON	5,'>NAME',TNAME
+	.dw	CRRNT			;vocabulary link
+TNAM1:	.dw	CELLP,AT,QDUP		;check all vocabularies
+	.dw	QBRAN,TNAM4
+	.dw	DDUP
+TNAM2:	.dw	AT,DUPP		;?last word in a vocabulary
+	.dw	QBRAN,TNAM3
+	.dw	DDUP,NAMET,XORR	;compare
+	.dw	QBRAN,TNAM3
+	.dw	CELLM			;continue with next word
+	.dw	BRAN,TNAM2
+TNAM3:	.dw	SWAP,DROP,QDUP
+	.dw	QBRAN,TNAM1
+	.dw	SWAP,DROP,SWAP,DROP,EXIT
+TNAM4:	.dw	DROP,DOLIT,0,EXIT	;false flag
 
-;   .ID         ( na -- )
-;               Display the name at address.
+;   .ID		( na -- )
+;	Display the name at address.
 
-                $COLON  3,'.ID',DOTID
-                .dw      QDUP                    ;if zero no name
-                .dw      QBRAN,DOTI1
-                .dw      COUNT,DOLIT,0x1F,ANDD   ;mask lexicon bits
-                .dw      UTYPE,EXIT              ;display name string
-DOTI1:          D$      DOTQP,'\040{noName}'
-                .dw      EXIT
+	$COLON	3,'.ID',DOTID
+	.dw	QDUP			;if zero no name
+	.dw	QBRAN,DOTI1
+	.dw	COUNT,DOLIT,0x1F,ANDD	;mask lexicon bits
+	.dw	UTYPE,EXIT		;display name string
+DOTI1:	D$	DOTQP,'\040{noName}'
+	.dw	EXIT
 
-;   SEE         ( -- ; <string> )
-;               A simple decompiler.
+;   SEE		( -- ; <string> )
+;	A simple decompiler.
 
-                $COLON  3,'SEE',SEE
-                .dw      TICK                    ;starting address
-                .dw      CR,CELLP
-SEE1:           .dw      CELLP,DUPP,AT,DUPP      ;?does it contain a zero
-                .dw      QBRAN,SEE2
-                .dw      TNAME                   ;?is it a name
-SEE2:           .dw      QDUP                    ;name address or zero
-                .dw      QBRAN,SEE3
-                .dw      SPACE,DOTID             ;display name
-                .dw      BRAN,SEE4
-SEE3:           .dw      DUPP,AT,UDOT            ;display number
-SEE4:           .dw      NUFQ                    ;user control
-                .dw      QBRAN,SEE1
-                .dw      DROP,EXIT
+	$COLON	3,'SEE',SEE
+	.dw	TICK			;starting address
+	.dw	CR,CELLP
+SEE1:	.dw	CELLP,DUPP,AT,DUPP	;?does it contain a zero
+	.dw	QBRAN,SEE2
+	.dw	TNAME			;?is it a name
+SEE2:	.dw	QDUP			;name address or zero
+	.dw	QBRAN,SEE3
+	.dw	SPACE,DOTID		;display name
+	.dw	BRAN,SEE4
+SEE3:	.dw	DUPP,AT,UDOT		;display number
+SEE4:	.dw	NUFQ			;user control
+	.dw	QBRAN,SEE1
+	.dw	DROP,EXIT
 
-;   WORDS       ( -- )
-;               Display the names in the context vocabulary.
+;   WORDS	( -- )
+;	Display the names in the context vocabulary.
 
-                $COLON  5,'WORDS',WORDS
-                .dw      CR,CNTXT,AT             ;only in context
-WORS1:          .dw      AT,QDUP                 ;?at end of list
-                .dw      QBRAN,WORS2
-                .dw      DUPP,SPACE,DOTID        ;display a name
-                .dw      CELLM,NUFQ              ;user control
-                .dw      QBRAN,WORS1
-                .dw      DROP
-WORS2:          .dw      EXIT
+	$COLON	5,'WORDS',WORDS
+	.dw	CR,CNTXT,AT		;only in context
+WORS1:	.dw	AT,QDUP			;?at end of list
+	.dw	QBRAN,WORS2
+	.dw	DUPP,SPACE,DOTID	;display a name
+	.dw	CELLM,NUFQ		;user control
+	.dw	QBRAN,WORS1
+	.dw	DROP
+WORS2:	.dw	EXIT
 
 ;; Hardware reset
 
-;   VER         ( -- n )
-;               Return the version number of this implementation.
+;   VER		( -- n )
+;	Return the version number of this implementation.
 
-                $COLON  3,'VER',VERSN
-                .dw      DOLIT,VER*256+EXT,EXIT
+	$COLON	3,'VER',VERSN
+	.dw	DOLIT,VER*256+EXT,EXIT
 
-;   hi          ( -- )
-;               Display the sign-on message of eForth.
+;   hi		( -- )
+;	Display the sign-on message of eForth.
 
-                $COLON  2,'hi',HI
-                .dw      STOIO,CR                ;initialize I/O
-                D$      DOTQP,'eForth\040v'        ;model
-                .dw      BASE,AT,HEX             ;save radix
-                .dw      VERSN,BDIGS,DIG,DIG
-                .dw      DOLIT,'.,HOLD
-                .dw      DIGS,EDIGS,TYPEE        ;format version number
-                .dw      BASE,STORE,CR,EXIT      ;restore radix
+	$COLON	2,'hi',HI
+	.dw	STOIO,CR		;initialize I/O
+	D$	DOTQP,'eForth\040v'	;model
+	.dw	BASE,AT,HEX		;save radix
+	.dw	VERSN,BDIGS,DIG,DIG
+	.dw	DOLIT,'.,HOLD
+	.dw	DIGS,EDIGS,TYPEE	;format version number
+	.dw	BASE,STORE,CR,EXIT	;restore radix
 
-;   'BOOT       ( -- a )
-;               The application startup vector.
+;   'BOOT	( -- a )
+;	The application startup vector.
 
-                $COLON  5,"'BOOT",TBOOT
-                .dw      DOVAR
-                .dw      HI                      ;application to boot
+	$COLON	5,"'BOOT",TBOOT
+	.dw	DOVAR
+	.dw	HI			;application to boot
 
-;   COLD        ( -- )
-;               The hilevel cold start sequence.
+;   COLD	( -- )
+;	The hilevel cold start sequence.
 
-                $COLON  4,'COLD',COLD
-COLD1:          .dw      DOLIT,UZERO,DOLIT,UPP
-                .dw      DOLIT,ULAST-UZERO,CMOVEL ;initialize user area
-                .dw      PRESE                   ;initialize stack and TIB
-                .dw      TBOOT,ATEXE             ;application boot
-                .dw      FORTH,CNTXT,AT,DUPP     ;initialize search order
-                .dw      CRRNT,DSTOR,OVERT
-                .dw      QUIT                    ;start interpretation
-                .dw      BRAN,COLD1              ;just in case
-
-
-;===============================================================
+	$COLON	4,'COLD',COLD
+COLD1:	.dw	DOLIT,UZERO,DOLIT,UPP
+	.dw	DOLIT,ULAST-UZERO,CMOVEL ;initialize user area
+	.dw	PRESE			;initialize stack and TIB
+	.dw	TBOOT,ATEXE		;application boot
+	.dw	FORTH,CNTXT,AT,DUPP	;initialize search order
+	.dw	CRRNT,DSTOR,OVERT
+	.dw	QUIT			;start interpretation
+	.dw	BRAN,COLD1		;just in case

@@ -1,407 +1,406 @@
 ;; The kernel
 
-;   doLIT       ( -- w )
-;               Push an inline literal.
+;   doLIT	( -- w )
+;	Push an inline literal.
 
-                $CODE   COMPO+5,'doLIT',DOLIT
-LD  A, (BC)  ; 7t
-INC BC       ; 6t
-LD  L, A      ; 4t
-LD  A, (BC)   ; 7t
-INC BC       ; 6t
-LD  H, A      ; 4t
-PUSH HL      ;11t
-JP  NextStep ;10t    ;(10MHz)5.5usec (+2.5usec NextStep)
-
-
-;   doLIST      ( a -- )
-;               Process colon list.
-
-                $CODE   COMPO+6,'doLIST',DOLST
-LD  HL, (RPA) ;16t
-DEC HL       ; 6t
-LD  (HL), B  ; 7t      \ end of r-push simulation
-DEC HL       ; 6t
-LD  (HL), C  ; 7t      \ end of r-push simulation
-LD  (RPA), HL ;16t      \ IP is r-pushed (simulated)
-;                    ;
-POP BC       ;10t
-JP  NextStep ;10t
-;                      ;99t==9.9usec (+ 2.4usec for NextStep)
+$CODE	COMPO+5,'doLIT',DOLIT
+	LD  A, (BC)	;7t
+	INC BC		;6t
+	LD  L, A	;4t
+	LD  A, (BC)	;7t
+	INC BC		;6t
+	LD  H, A	;4t
+	PUSH HL		;11t
+	JP NextStep	;10t    ;(10MHz)5.5usec (+2.5usec NextStep)
 
 
+;   doLIST	( a -- )
+;	Process colon list.
 
-;   EXIT        ( -- )
-;               Terminate a colon definition.
-
-                $CODE   4,'EXIT',EXIT
-
-LD  HL, (RPA) ;16t
-LD  C, (HL)  ; 7t
-INC HL       ; 6t
-LD  B, (HL)  ; 7t
-INC HL       ; 6t
-LD  (RPA),HL  ;16t
-JP  NextStep ;10t
-;                    ;68t==6.8us
+	$CODE	COMPO+6,'doLIST',DOLST
+	LD  HL, (RPA)	;16t
+	DEC HL		;6t
+	LD  (HL), B	;7t      \ end of r-push simulation
+	DEC HL		;6t
+	LD  (HL), C	;7t      \ end of r-push simulation
+	LD  (RPA), HL	;16t	\ IP is r-pushed (simulated)
+;
+	POP BC		;10t
+	JP NextStep	;10t
+			;99t==9.9usec (+ 2.4usec for NextStep)
 
 
 
-;   EXECUTE     ( ca -- )
-;               Execute the word at ca.
+;   EXIT	( -- )
+;	Terminate a colon definition.
 
-                $CODE   7,'EXECUTE',EXECU
-POP HL        ;10t
-JP  (HL)      ; 4t
+	$CODE	4,'EXIT',EXIT
+	LD  HL, (RPA)	;16t
+	LD  C, (HL)	;7t
+	INC HL		;6t
+	LD  B, (HL)	;7t
+	INC HL		;6t
+	LD  (RPA),HL	;16t
+	JP NextStep	;10t
+			;68t==6.8us
 
 
 
-;   next        ( -- )
-;               Run time code for the single index loop.
-;               : next ( -- ) \ hilevel model
-;                 r> r> dup if 1 - >r @ >r exit then drop cell+ >r ;
+;   EXECUTE	( ca -- )
+;	Execute the word at ca.
 
-                $CODE   COMPO+4,'next',DONXT
-LD  HL, (RPA) ;16t
-LD  A, (HL)  ; 7t
-OR  A        ; 4t
-JR  NZ, DECLOW;12/7t a fast dec is ok, only failed every 255 time
-                       ;                    ; low byte 0
-INC HL       ; 6t
-LD  A, (HL)  ; 7t
-OR  A        ; 4t
-JR  NZ, DECHILO;12/7t Hi-byte no-zero, it is also a re-loop case
-                       ;zero bound now .. .
-INC HL       ; 6tdiscard the loop count on R-stack
-LD  (RPA), HL ;16t
-INC BC       ; 6t\ IP slip over the re-loop-addr
-INC BC       ; 6t
-JP  NextStep ;10t loop is over
-;                    ; 98t==(10MHz)9.8usec
+	$CODE	7,'EXECUTE',EXECU
+	POP HL		;10t
+	JP  (HL)	;4t
+
+
+
+;   next	( -- )
+;	Run time code for the single index loop.
+;		: next ( -- ) \ hilevel model
+;		  r> r> dup if 1 - >r @ >r exit then drop cell+ >r	;
+
+	$CODE	COMPO+4,'next',DONXT
+	LD  HL, (RPA)	;16t
+	LD  A, (HL)	;7t
+	OR  A		;4t
+	JR  NZ, DECLOW	;12/7t a fast dec is ok, only failed every 255 time
+			;low byte 0
+	INC HL		;6t
+	LD  A, (HL)	;7t
+	OR  A		;4t
+	JR  NZ, DECHILO;12/7t Hi-byte no-zero, it is also a re-loop case
+			;zero bound now .. .
+	INC HL		;6t discard the loop count on R-stack
+	LD  (RPA), HL	;16t
+	INC BC		;6t IP slip over the re-loop-addr
+	INC BC		;6t
+	JP NextStep	;10t loop is over
+			;98t==(10MHz)9.8usec
 DECHILO:
-DEC (HL)     ;11t hi-byte
-DEC HL       ; 6t back to low byte
+	DEC (HL)	;11t hi-byte
+	DEC HL		;6t back to low byte
 DECLOW:
-DEC (HL)     ;11t low byte non-zero, just dec it and re-loop
-LD  L, C     ; 4t get loop-start-adr to IP and keep stepping
-LD  H, B     ; 4t
-LD  C, (HL)  ; 7t
-INC HL       ; 6t
-LD  B, (HL)  ; 7t
-JP  NextStep ;10t
-; low byte dec:    88t==(10MHz)8.8usec
+	DEC (HL)	;11t low byte non-zero, just dec it and re-loop
+	LD  L, C	;4t get loop-start-adr to IP and keep stepping
+	LD  H, B	;4t
+	LD  C, (HL)	;7t
+	INC HL		;6t
+	LD  B, (HL)	;7t
+	JP NextStep	;10t
+; low byte dec:	   88t==(10MHz)8.8usec
 ; lo&Hi byte dec: 134t==(10MHz)13.4usec
 
 
-;   ?brAhnch     ( f -- )
-;               Branch if flag is zero.
+;   ?brAhnch	 ( f -- )
+;	Branch if flag is zero.
 
-                $CODE   COMPO+7,'?branch',QBRAN
-POP HL        ;10t
-LD  A, L      ; 4t    ?branch adr is just after ?branch
-OR  H         ; 4t    and IP is pointing it
-JR  Z,ZEROO   ; 12/7t (Z=1,12t)
-INC BC        ; 6t    IP slip over the retun addr
-INC BC        ; 6t    ex: 'TRUE IF' will slip over
-JP  NextStep  ;10t  ;47t==(10MHz)4.7usec
+	$CODE	COMPO+7,'?branch',QBRAN
+	POP HL		;10t
+	LD  A, L	;4t    ?branch adr is just after ?branch
+	OR  H		;4t    and IP is pointing it
+	JR  Z,ZEROO	;12/7t (Z=1,12t)
+	INC BC		;6t    IP slip over the retun addr
+	INC BC		;6t    ex: 'TRUE IF' will slip over
+	JP NextStep	;10t  ;47t==(10MHz)4.7usec
 ;
 ZEROO:
-LD  L, C      ; 4t    get IP :=[IP] and go
-LD  H, B      ; 4t
-LD  C, (HL)   ; 7t
-INC HL        ; 6t
-LD  B, (HL)   ; 7t
-JP  NextStep  ;10t  68t==(10MHz)6.8usec
+	LD  L, C	;4t    get IP :=[IP] and go
+	LD  H, B	;4t
+	LD  C, (HL)	;7t
+	INC HL		;6t
+	LD  B, (HL)	;7t
+	JP NextStep	;10t  68t==(10MHz)6.8usec
 
 
 
-;   branch      ( -- )
-;               Branch to an inline address.
+;   branch	( -- )
+;	Branch to an inline address.
 
-                $CODE   COMPO+6,'branch',BRAN
-LD  L, C      ; 4t   get IP :=[IP] and go
-LD  H, B      ; 4t
-LD  C, (HL)   ; 7t
-INC HL        ; 6t
-LD  B, (HL)   ; 7t
-JP  NextStep  ;10t
-;                     ;38t==(10MHz)3.8usec
+	$CODE	COMPO+6,'branch',BRAN
+	LD  L, C	;4t   get IP :=[IP] and go
+	LD  H, B	;4t
+	LD  C, (HL)	;7t
+	INC HL		;6t
+	LD  B, (HL)	;7t
+	JP NextStep	;10t
+			;38t==(10MHz)3.8usec
 
 
 
-;   !           ( w a -- )
-;               Pop the data stack to memory.
+;   !		( w a -- )
+;	Pop the data stack to memory.
 
-                $CODE   1,'!',STORE
-POP HL       ;10t
-POP DE       ;10t
-LD  (HL), E  ; 7t
-INC HL       ; 6t
-LD  (HL), D  ; 7t
-JP  NextStep ;10t
-;                    ;50t==(10Mhz)5.0 usec
+	$CODE	1,'!',STORE
+	POP HL		;10t
+	POP DE		;10t
+	LD  (HL), E	;7t
+	INC HL		;6t
+	LD  (HL), D	;7t
+	JP NextStep	;10t
+			;50t==(10Mhz)5.0 usec
 
 
 
-;   @           ( a -- w )
-;               Push memory location to the data stack.
+;   @		( a -- w )
+;	Push memory location to the data stack.
 
-                $CODE   1,'@',AT
-POP HL       ;10t
-LD  E, (HL)  ; 7t
-INC HL       ; 6t
-LD  D, (HL)  ; 7t
-PUSH DE      ;11t
-JP  NextStep ;10t
-;                    ;51t==(10Mhz)5.1usec
+	$CODE	1,'@',AT
+	POP HL		;10t
+	LD  E, (HL)	;7t
+	INC HL		;6t
+	LD  D, (HL)	;7t
+	PUSH DE		;11t
+	JP NextStep	;10t
+			;51t==(10Mhz)5.1usec
 
 
 
-;   C!          ( c b -- )
-;               Pop the data stack to byte memory.
+;   C!		( c b -- )
+;	Pop the data stack to byte memory.
 
-                $CODE   2,'C!',CSTOR
-POP HL        ;10t
-POP DE        ;10t
-LD  (HL), E   ; 7t
-JP  NextStep  ;10t
-;                     ;37t==(10Mhz)3.7usec
+	$CODE	2,'C!',CSTOR
+	POP HL		;10t
+	POP DE		;10t
+	LD  (HL), E	;7t
+	JP NextStep	;10t
+			;37t==(10Mhz)3.7usec
 
 
 
 
-;   C@          ( b -- c )
-;               Push byte memory location to the data stack.
+;   C@		( b -- c )
+;	Push byte memory location to the data stack.
 
-                $CODE   2,'C@',CAT
-POP HL       ;10t
-LD  E, (HL)  ; 7t
-LD  D, #0     ; 7t
-PUSH DE      ;11t
-JP  NextStep ;10t
-;                    ;45t==(10Mhz)4.5usec
+	$CODE	2,'C@',CAT
+	POP HL		;10t
+	LD  E, (HL)	;7t
+	LD  D, #0	;7t
+	PUSH DE		;11t
+	JP NextStep	;10t
+			;45t==(10Mhz)4.5usec
 
 
 
 
-;   >R          ( w -- )
-;               Push the data stack to the return stack.
+;   >R		( w -- )
+;	Push the data stack to the return stack.
 
-                $CODE   COMPO+2,'>R',TOR
-POP DE       ;10t
-LD  HL, (RPA) ;16t
-DEC HL       ; 6t
-LD  (HL), D  ; 7t
-DEC HL       ; 6t
-LD  (HL), E  ; 7t
-LD  (RPA), HL ;16t
-JP  NextStep ;10t
-;                    ;78t==(10MHz)7.8usec
+	$CODE	COMPO+2,'>R',TOR
+	POP DE		;10t
+	LD  HL, (RPA)	;16t
+	DEC HL		;6t
+	LD  (HL), D	;7t
+	DEC HL		;6t
+	LD  (HL), E	;7t
+	LD  (RPA), HL	;16t
+	JP NextStep	;10t
+			;78t==(10MHz)7.8usec
 
 
 
-;   R@          ( -- w )
-;               Copy top of return stack to the data stack.
+;   R@		( -- w )
+;	Copy top of return stack to the data stack.
 
-                $CODE   2,'R@',RAT
-LD  HL, (RPA) ;16t
-LD  E, (HL)  ; 7t
-INC HL       ; 6t
-LD  D, (HL)  ; 7t
-PUSH DE      ;11t
-JP  NextStep ;10t
-;                    ;57t==(10MHz)5.7usec
+	$CODE	2,'R@',RAT
+	LD  HL, (RPA)	;16t
+	LD  E, (HL)	;7t
+	INC HL		;6t
+	LD  D, (HL)	;7t
+	PUSH DE		;11t
+	JP NextStep	;10t
+			;57t==(10MHz)5.7usec
 
 
 
-;   R>          ( -- w )
-;               Pop the return stack to the data stack.
+;   R>		( -- w )
+;	Pop the return stack to the data stack.
 
-                $CODE   2,'R>',RFROM
-LD  HL, (RPA) ;16t
-LD  E, (HL)  ; 7t
-INC HL       ; 6t
-LD  D, (HL)  ; 7t
-INC HL       ; 6t
-LD  (RPA), HL ;16t
-PUSH DE      ;11t
-JP  NextStep ;10t
-;                    ;67t==(10MHz)5.7.usec
+	$CODE	2,'R>',RFROM
+	LD  HL, (RPA)	;16t
+	LD  E, (HL)	;7t
+	INC HL		;6t
+	LD  D, (HL)	;7t
+	INC HL		;6t
+	LD  (RPA), HL	;16t
+	PUSH DE		;11t
+	JP NextStep	;10t
+			;67t==(10MHz)5.7.usec
 
 
 
-;   RP@         ( -- a )
-;               Push the current RP to the data stack.
+;   RP@		( -- a )
+;	Push the current RP to the data stack.
 
-                $CODE   3,'RP@',RPAT
-LD  HL, (RPA)
-PUSH HL
-JP  NextStep
+	$CODE	3,'RP@',RPAT
+	LD  HL, (RPA)
+	PUSH HL
+	JP NextStep
 
 
 
-;   RP!         ( a -- )
-;               Set the return stack pointer.
+;   RP!		( a -- )
+;	Set the return stack pointer.
 
-                $CODE   COMPO+3,'RP!',RPSTO
-POP HL       ;
-LD  (RPA), HL ;
-JP  NextStep ;
+	$CODE	COMPO+3,'RP!',RPSTO
+	POP HL		;
+	LD  (RPA), HL	;
+	JP NextStep	;
 
 
 
-;   SP@         ( -- a )
-;               Push the current data stack pointer.
+;   SP@		( -- a )
+;	Push the current data stack pointer.
 
-                $CODE   3,'SP@',SPAT
-LD  HL, #0
-ADD HL, SP
-PUSH HL
-JP  NextStep
+	$CODE	3,'SP@',SPAT
+	LD  HL, #0
+	ADD HL, SP
+	PUSH HL
+	JP NextStep
 
 
 
-;   SP!         ( a -- )
-;               Set the data stack pointer.
+;   SP!		( a -- )
+;	Set the data stack pointer.
 
-                $CODE   3,'SP!',SPSTO
-POP HL
-LD  SP, HL
-JP  NextStep
+	$CODE	3,'SP!',SPSTO
+	POP HL
+	LD  SP, HL
+	JP NextStep
 
 
 
-;   DUP         ( w -- w w )
-;               Duplicate the top stack item.
+;   DUP		( w -- w w )
+;	Duplicate the top stack item.
 
-                $CODE   3,'DUP',DUPP
-POP HL       ;10t
-PUSH HL      ;11t
-PUSH HL      ;11t
-JP  NextStep ;10t
-;                    ;42t==(10MHz)4.2usec
+	$CODE	3,'DUP',DUPP
+	POP HL		;10t
+	PUSH HL		;11t
+	PUSH HL		;11t
+	JP NextStep	;10t
+			;42t==(10MHz)4.2usec
 
 
 
-;   DROP        ( w -- )
-;               Discard top stack item.
+;   DROP	( w -- )
+;	Discard top stack item.
 
-                $CODE   4,'DROP',DROP
-POP HL       ;10t
-JP  NextStep ;10t
-;                    ;20t==(10MHz)2.0usec
+	$CODE	4,'DROP',DROP
+	POP HL		;10t
+	JP NextStep	;10t
+			;20t==(10MHz)2.0usec
 
 
 
-;   SWAP        ( w1 w2 -- w2 w1 )
-;               Exchange top two stack items.
+;   SWAP	( w1 w2 -- w2 w1 )
+;	Exchange top two stack items.
 
-                $CODE   4,'SWAP',SWAP
-POP HL       ;10t
-EX  (SP), HL ;19t
-PUSH HL      ;11t
-JP  NextStep ;10t
-                       ;                    ;50t==(10MHz)5.0usec
+	$CODE	4,'SWAP',SWAP
+	POP HL		;10t
+	EX  (SP), HL	;19t
+	PUSH HL		;11t
+	JP NextStep	;10t
+			;		    ;50t==(10MHz)5.0usec
 
 
 
-;   OVER        ( w1 w2 -- w1 w2 w1 )
-;               Copy second stack item to top.
+;   OVER	( w1 w2 -- w1 w2 w1 )
+;	Copy second stack item to top.
 
-                $CODE   4,'OVER',OVER
-POP DE       ;10t
-POP HL       ;10t
-PUSH HL      ;11t
-PUSH DE      ;11t
-PUSH HL      ;11t
-JP  NextStep ;10t
-                       ;                    ;63t==(10MHz)6.3usec
+	$CODE	4,'OVER',OVER
+	POP DE		;10t
+	POP HL		;10t
+	PUSH HL		;11t
+	PUSH DE		;11t
+	PUSH HL		;11t
+	JP NextStep	;10t
+			;		    ;63t==(10MHz)6.3usec
 
 
 
-;   0<          ( n -- t )
-;               Return true if n is negative.
+;   0<		( n -- t )
+;	Return true if n is negative.
 
-                $CODE   2,'0<',ZLESS
-POP HL         ;10t
-ADD HL, HL     ;11t
-JR  C, LESSZ   ;12/7t
-LD  HL, 0      ;10t
-PUSH HL        ;11t
-JP  NextStep   ;10t   59t==(10MHz)5.9usec
-                       ;
+	$CODE	2,'0<',ZLESS
+	POP HL		;10t
+	ADD HL, HL	;11t
+	JR  C, LESSZ	;12/7t
+	LD  HL, 0	;10t
+	PUSH HL		;11t
+	JP NextStep	;10t   59t==(10MHz)5.9usec
+			;
 LESSZ:
-LD  HL, 0xFFFF ;10t
-PUSH HL        ;11t
-JP  NextStep   ;10t   64t==(10MHz)6.4usec
+	LD  HL, 0xFFFF	;10t
+	PUSH HL		;11t
+	JP NextStep	;10t   64t==(10MHz)6.4usec
 
 
 
-;   AND         ( w w -- w )
-;               Bitwise AND.
+;   AND		( w w -- w )
+;	Bitwise AND.
 
-                $CODE   3,'AND',ANDD
-POP DE
-POP HL
-LD  A, E
-AND L
-LD  L, A
-LD  A, D
-AND H
-LD  H, A
-PUSH HL
-JP  NextStep
-
-
-
-;   OR          ( w w -- w )
-;               Bitwise inclusive OR.
-
-                $CODE   2,'OR',ORR
-POP DE
-POP HL
-LD  A, E
-OR  L
-LD  L, A
-LD  A, D
-OR  H
-LD  H, A
-PUSH HL
-JP  NextStep
+	$CODE	3,'AND',ANDD
+	POP DE
+	POP HL
+	LD  A, E
+	AND L
+	LD  L, A
+	LD  A, D
+	AND H
+	LD  H, A
+	PUSH HL
+	JP NextStep
 
 
 
-;   XOR         ( w w -- w )
-;               Bitwise exclusive
+;   OR		( w w -- w )
+;	Bitwise inclusive OR.
 
-                $CODE   3,'XOR',XORR
-POP DE
-POP HL
-LD  A, E
-XOR L
-LD  L, A
-LD  A, D
-XOR H
-LD  H, A
-PUSH HL
-JP  NextStep
+	$CODE	2,'OR',ORR
+	POP DE
+	POP HL
+	LD  A, E
+	OR  L
+	LD  L, A
+	LD  A, D
+	OR  H
+	LD  H, A
+	PUSH HL
+	JP NextStep
 
 
 
-;   UM+         ( w w -- w cy )
-;               Add two numbers, return the sum and carry flag.
+;   XOR		( w w -- w )
+;	Bitwise exclusive
 
-                $CODE   3,'UM+',UPLUS
-POP DE         ;10t
-POP HL         ;10t
-ADD HL, DE     ;11t
-PUSH HL        ;11t
-JR  C, CARRY   ;12/7t
-LD  HL, #0      ;10t
-PUSH HL        ;11t
-JP  NextStep   ;10t
-                       ;
+	$CODE	3,'XOR',XORR
+	POP DE
+	POP HL
+	LD  A, E
+	XOR L
+	LD  L, A
+	LD  A, D
+	XOR H
+	LD  H, A
+	PUSH HL
+	JP NextStep
+
+
+
+;   UM+		( w w -- w cy )
+;	Add two numbers, return the sum and carry flag.
+
+	$CODE	3,'UM+',UPLUS
+	POP DE		;10t
+	POP HL		;10t
+	ADD HL, DE	;11t
+	PUSH HL		;11t
+	JR  C, CARRY	;12/7t
+	LD  HL, #0	;10t
+	PUSH HL		;11t
+	JP NextStep	;10t
+;
 CARRY:
-LD  HL, #1      ;10t
-PUSH HL        ;11t
-JP  NextStep   ;10t
+	LD  HL, #1	;10t
+	PUSH HL		;11t
+	JP NextStep	;10t

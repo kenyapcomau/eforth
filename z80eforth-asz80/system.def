@@ -1,9 +1,9 @@
-;; Version control
+; Version control
 
 VER		.equ	0x1		;major release version
 EXT		.equ	0x0		;minor extension
 
-;; Constants
+; Constants
 
 COMPO		.equ	0x40		;lexicon compile only bit
 IMEDD		.equ	0x80		;lexicon immediate bit
@@ -17,28 +17,15 @@ BKSPP		.equ	0x08		;backspace
 LF		.equ	0x0A		;line feed
 CRR		.equ	0x0D		;carriage return
 ERR		.equ	0x1B		;error escape
-TIC		.equ	0x27		;tick
 
 ERROR		.equ	0x0000
 
-;
-; Ports
-;
-
-CTC		.equ	0x11
-SIOBD		.equ	0x1A		; data
-SIOBC		.equ	0x1B		; control
-PIOAD		.equ	0x1C		; data
-PIOAC		.equ	0x1D		; control
-PIOBD		.equ	0x1E		; data
-PIOBC		.equ	0x1F		; control
+CALLL		.equ	0xCD00		;opcode for NOP and CALL
 
 EM		.equ	0xFFFF		;top of RAM memory
 BM		.equ	0x0000		;bottom of ROM memory
-COLDD		.equ	BM + 0x00	;cold start vector
 COLDSTART	.equ	0x100		;code starts here
 
-UAB		.equ	0xC000		;user area base address
 UAEM		.equ	0xE200		;user area end of memory address
 
 ;US		.equ	0x100		;user area size in cells
@@ -52,14 +39,24 @@ TIBB		.equ	UAEM - 0x200	;terminal input buffer (TIB)
 NAMEE		.equ	BM + 0x1FFE	;initial name (ROM)dictionary
 CODEE		.equ	BM + 0x0000	;initial code (ROM)dictionary
 
-SiobRxQ		.equ	0xFB00		; one page circular queue
-SVAB		.equ	0xFE00		; System Variable Address Base
-IVEC		.equ	SVAB + 0x00	; system interrupt vector base address
-RxBAvlVec	.equ	SVAB + 0x04	; interrupt vector
-SRxCondVec	.equ	SVAB + 0x06	; interrupt vector
-RPA		.equ	SVAB + 0x0C	; R-stack pointer, simulate RP reg
-UPA		.equ	SVAB + 0x0E	; User area
-SiobRxQin	.equ	SVAB + 0x12	; SIOB Rx Q input pointer
-SiobRxQout	.equ	SVAB + 0x14	; SIOB Rx Q output pointer
+;
+; Hardware ports
+;
 
-CALLL		.equ	0xCD00		;opcode for NOP and CALL
+CTC		.equ	0x11
+SIOBD		.equ	0x1A		;data
+SIOBC		.equ	0x1B		;control
+PIOAD		.equ	0x1C		;data
+PIOAC		.equ	0x1D		;control
+PIOBD		.equ	0x1E		;data
+PIOBC		.equ	0x1F		;control
+
+SiobRxQ		.equ	0xFB00		;one page circular queue
+SVAB		.equ	0xFE00		;System Variable Address Base
+IVEC		.equ	SVAB + 0x00	;system interrupt vector base address
+RxBAvlVec	.equ	SVAB + 0x04	;interrupt vector
+SRxCondVec	.equ	SVAB + 0x06	;interrupt vector
+RPA		.equ	SVAB + 0x0C	;R-stack pointer, simulate RP reg
+UPA		.equ	SVAB + 0x0E	;User area
+SiobRxQin	.equ	SVAB + 0x12	;SIOB Rx Q input pointer
+SiobRxQout	.equ	SVAB + 0x14	;SIOB Rx Q output pointer
