@@ -20,7 +20,7 @@
 ;	LD A, H
 ;	LD H, L
 ;	LD L, D
-;	LD D, 8
+;	LD D, #8
 ;	PUSH DE
 ;	CALL USLA
 ;	POP DE
@@ -38,7 +38,7 @@
 ;	JP  NextStep
 ;
 ;USBAD: POP BC
-;	LD HL, 0FFFFh
+;	LD HL, #0xFFFF
 ;	PUSH HL
 ;	PUSH HL
 ;

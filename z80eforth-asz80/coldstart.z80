@@ -7,31 +7,31 @@
 ; move ROM version user data to 1st user RAM
 ;
 	LD C, #PIOAC		;PIOA
-	LD A, 0xCF
+	LD A, #0xCF
 	OUT (C), A
-	LD A, 0
+	LD A, #0
 	OUT (C), A
-	LD A, 0x17
+	LD A, #0x17
 	OUT (C), A
-	LD A, 0xFF
+	LD A, #0xFF
 	OUT (C), A
 ;
 	LD C, #PIOBC		;PIOB
-	LD A, 0xCF
+	LD A, #0xCF
 	OUT (C), A
-	LD A, 0
+	LD A, #0
 	OUT (C), A
-	LD A, 0x17
+	LD A, #0x17
 	OUT (C), A
-	LD A, 0xFF
+	LD A, #0xFF
 	OUT (C), A
 ;
 	LD C, #PIOAD
-	LD A, 0x5B		;PIOA data: TEST ON, RED LED on .. .
+	LD A, #0x5B		;PIOA data: TEST ON, RED LED on .. .
 	OUT (C), A
 ;
 	LD C, #PIOBD
-	LD A, 0x17		;PIOB data: .. .
+	LD A, #0x17		;PIOB data: .. .
 	OUT (C), A
 ;
 ; Set IM2
@@ -54,7 +54,7 @@
 ; this is supposed not impossible to be happen
 ;
 	LD C, #PIOAD
-	LD A, 0xBB		;PIOA data: GRN LED only.
+	LD A, #0xBB		;PIOA data: GRN LED only.
 	OUT (C), A
 
 	JP COLD

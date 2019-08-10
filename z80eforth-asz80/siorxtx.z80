@@ -9,7 +9,7 @@
 	LD HL, #SiobRxQin	;16t
 	CP (HL)			; 7t
 	JR NZ, $1		; 7t/12t (NZ jump=12t) ptr <>, get the char
-	LD HL, 0		;10t False flag
+	LD HL, #0		;10t False flag
 	PUSH HL			;11t
 	JP NextStep		;10t ==> False Timing:84t==(10MHz)8.4usec
 $1:
@@ -18,11 +18,11 @@ $1:
 	LD D, (HL)		; 7t get this ptr HI
 	EX DE,HL		; 4t let HL point the char
 	LD E, (HL)		; 7t get the char
-	LD D, 0			; 7t high byte =0
+	LD D, #0			; 7t high byte =0
 	PUSH DE			;11t
 	INC L			; 4t ptr+1, a 256 byte Ring queue
 	LD (SiobRxQin),HL	;16t
-	LD HL,0xFFFF		;10t
+	LD HL, #0xFFFF		;10t
 	PUSH HL			;11t
 	JP NextStep		;10t ==> TRUE case: 100t(10MHz)10.0usec
 
@@ -44,7 +44,7 @@ TX1:	.dw	 DOLIT, 0, DOLIT, 0x1B, PCSTO	; BEGIN 0 $1B PC!
 SiobRxBAvl:
 	PUSH AF			;11t ;save
 	PUSH HL			;11t ;save
-	IN A, (0x1a)		;11t ;SIOB data reg
+	IN A, (SIOBD)		;11t ;SIOB data reg
 	LD HL, (SiobRxQout)	;16t
 	LD (HL), A		; 7t ; put to ring queue
 	INC L			; 4t ; 256 byte ring queue
@@ -58,11 +58,11 @@ SiobRxBAvl:
 SiobSRxCond:			; SIOB Special Rx Condition, reset only
 	PUSH AF			; NOTE: a flag may be set for discard a process
 	PUSH BC
-	LD A, 4
-	LD C, 0x1B
+	LD A, #4
+	LD C, #0x1B
 	OUT (C), A		; reset
-	LD A, 0xFB
-	LD C, 0x1C
+	LD A, #0xFB
+	LD C, #0x1C
 	OUT (C), A
 	POP BC
 	POP AF

@@ -22,7 +22,7 @@
 	POP BC		;10t
 	IN A, (C)	;12t
 	LD E, A		; 4t
-	LD D, 0		; 7t
+	LD D, #0		; 7t
 	PUSH DE		;11t
 	EXX		; 4t
 	JP NextStep	;10t

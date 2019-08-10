@@ -325,12 +325,12 @@ ZEROO:
 	POP HL		;10t
 	ADD HL, HL	;11t
 	JR  C, LESSZ	;12/7t
-	LD  HL, 0	;10t
+	LD  HL, #0	;10t
 	PUSH HL		;11t
 	JP NextStep	;10t   59t==(10MHz)5.9usec
 			;
 LESSZ:
-	LD  HL, 0xFFFF	;10t
+	LD  HL, #0xFFFF	;10t
 	PUSH HL		;11t
 	JP NextStep	;10t   64t==(10MHz)6.4usec
 
