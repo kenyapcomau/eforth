@@ -32,11 +32,11 @@ $1:
 ;	Send character c to the output device.
 
 	$COLON	3,'TX!',TXSTO
-TX1:	.dw	 DOLIT, 0, DOLIT, 0x1B, PCSTO	; BEGIN 0 $1B PC!
-	.dw	 DOLIT, 0x1B, PCAT		;	  $1B PC@
+TX1:	.dw	 DOLIT, 0, DOLIT, SIOBC, PCSTO	; BEGIN 0 $1B PC!
+	.dw	 DOLIT, SIOBC, PCAT		;	  $1B PC@
 	.dw	 DOLIT, 4, ANDD			;	4 AND
 	.dw	 QBRAN, TX1			; UNTIL
-	.dw	 DOLIT, 0x1A, PCSTO, EXIT	; $1A PC!
+	.dw	 DOLIT, SIOBD, PCSTO, EXIT	; $1A PC!
 
 ; for timing: interrupt will get vector, push pc, jump to service .. .
 ;  a rough estimate:	       7t   +	    11t	 +  10t
@@ -59,10 +59,10 @@ SiobSRxCond:			; SIOB Special Rx Condition, reset only
 	PUSH AF			; NOTE: a flag may be set for discard a process
 	PUSH BC
 	LD A, #4
-	LD C, #0x1B
+	LD C, #SIOBC
 	OUT (C), A		; reset
 	LD A, #0xFB
-	LD C, #0x1C
+	LD C, #PIOAD
 	OUT (C), A
 	POP BC
 	POP AF
