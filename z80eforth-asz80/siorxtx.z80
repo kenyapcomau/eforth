@@ -18,7 +18,7 @@ $1:
 	LD D, (HL)		; 7t get this ptr HI
 	EX DE,HL		; 4t let HL point the char
 	LD E, (HL)		; 7t get the char
-	LD D, #0			; 7t high byte =0
+	LD D, #0		; 7t high byte =0
 	PUSH DE			;11t
 	INC L			; 4t ptr+1, a 256 byte Ring queue
 	LD (SiobRxQin),HL	;16t

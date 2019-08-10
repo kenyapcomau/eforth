@@ -6,7 +6,7 @@
 	$CODE	3,'!IO',STOIO ;
 
 	EXX			;4t
-	LD A, #0x0FE
+	LD A, #0xFE
 	LD I, A
 	LD HL, #SiobRxBAvl
 	LD (RxBAvlVec), HL	;interrupt vector cell
@@ -36,17 +36,17 @@
 	OUT (C), A
 	LD A, #0x17
 	OUT (C), A
-	LD A, #0x0FF
+	LD A, #0xFF
 	OUT (C), A
 ;
 	LD C, #PIOBC
-	LD A, #0x0CF
+	LD A, #0xCF
 	OUT (C), A
 	LD A, #0
 	OUT (C), A
 	LD A, #0x17
 	OUT (C), A
-	LD A, #0x0FF
+	LD A, #0xFF
 	OUT (C), A
 ;
 	LD C, #PIOAD
