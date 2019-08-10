@@ -8,7 +8,7 @@ You will almost certainly not be able to use the software as is. That would requ
 
 You will need to write chip specific initialisation routines and I/O words, as well as interrupt handlers for the SIO. That is, if you choose to use interrupt handling for SIO. Probably a good idea, given how slow an interpreted (albeit threaded interpreted) language will be on a slow micro. But maybe you are running this on a modern fast Z80 descendant. Also you may want to modify the memory layout.
 
-If you get something to work on your platform, I encourage you to put them in a subdirectory named after your platform, and submit a git pull request. Please also write something about your hardware configuration to help others reuse your code. I will leave the original sources as is, except for fixes for bugs which are discovered.
+If you get something to work on your platform, I encourage you to put it in a subdirectory named after your platform, and submit a git pull request. Please also write something about your hardware configuration to help others reuse your code. I will leave the original sources as is, except for fixes for bugs which are discovered.
 
 Platform also means any simulators if you get this eForth to work under one.
 
