@@ -278,6 +278,8 @@ UZERO:	.dw	 0,0,0,0	;reserved
 	.dw	 0		;vocabulary link ???
 ULAST:
 
+	.org	BM + 0x100
+
 .include "coldstart.z80"
 
 .include "nextstep.z80"

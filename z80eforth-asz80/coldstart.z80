@@ -1,7 +1,5 @@
 ;; Coldstart code
 
-	.org	BM + 0x100
-
 	DI
 ;
 ; move ROM version user data to 1st user RAM
