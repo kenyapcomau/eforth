@@ -234,49 +234,13 @@ end:				;;local label
 
 ;; Main entry points and COLD start data
 
-	.org	BM		;Power up location******
+	.org	BM		;Power up location
 
 .include "lowmem.z80"
 
-	.org	BM + 0x80	;User variable initial values
+	.org	BM + 0x80
 
-; COLD start moves the following to USER variables.
-; MUST BE IN SAME ORDER AS USER VARIABLES.
-
-	$ALIGN			;align to cell boundary
-
-UZERO:	.dw	 0,0,0,0	;reserved
-	.dw	 SPP		;SP0
-	.dw	 RPP		;RP0
-	.dw	 QRX		;'?KEY
-	.dw	 TXSTO		;'EMIT
-	.dw	 ACCEP		;'EXPECT
-	.dw	 KTAP		;'TAP
-	.dw	 TXSTO		;'ECHO
-	.dw	 DOTOK		;'PROMPT
-	.dw	 BASEE		;BASE
-	.dw	 0		;tmp
-	.dw	 0		;SPAN
-	.dw	 0		;>IN
-	.dw	 0		;#TIB
-	.dw	 TIBB		;TIB
-	.dw	 0		;CSP
-	.dw	 INTER		;'EVAL
-	.dw	 NUMBQ		;'NUMBER
-	.dw	 0		;HLD
-	.dw	 0		;HANDLER
-	.dw	 0		;CONTEXT pointer
-	.rept	VOCSS
-	.dw	 0		;vocabulary stack ???
-	.endm
-	.dw	 0		;CURRENT pointer
-	.dw	 0		;vocabulary link pointer ???
-	.dw	 0xC000		;CP for runing phase on RAM
-	.dw	 0xDFFE		;NP for runing phase on RAM
-	.dw	 LASTN		;LAST
-	.dw	 LASTN		;FORTH	\ mullti-user ???
-	.dw	 0		;vocabulary link ???
-ULAST:
+.include "uinit.z80"		;User variable initial values
 
 	.org	BM + 0x100
 
