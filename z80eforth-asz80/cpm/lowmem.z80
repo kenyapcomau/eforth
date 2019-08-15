@@ -1,0 +1,8 @@
+;; The first 128 bytes of the image
+;; Will be deleted in .COM but here for tracing with z80sim
+
+	JP COLDSTART	;Jump to cold start 0x100
+	nop
+	nop
+	ld a, #0	;no character if QRX call
+	ret

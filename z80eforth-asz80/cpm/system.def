@@ -1,0 +1,50 @@
+i8080		.equ	0		; set to 1 for 8080 instruction set
+
+.if i8080 == 1
+		.8080
+.endif
+
+; Version control
+
+VER		.equ	0x1		;major release version
+EXT		.equ	0x0		;minor extension
+
+; Constants
+
+COMPO		.equ	0x40		;lexicon compile only bit
+IMEDD		.equ	0x80		;lexicon immediate bit
+MASKK		.equ	0x7F1F		;lexicon bit mask
+
+CELLL		.equ	2		;size of a cell
+BASEE		.equ	0x0A		;default radix
+VOCSS		.equ	8		;depth of vocabulary stack
+
+BKSPP		.equ	0x08		;backspace
+LF		.equ	0x0A		;line feed
+CRR		.equ	0x0D		;carriage return
+ERR		.equ	0x1B		;error escape
+
+ERROR		.equ	0x0000
+
+CALLL		.equ	0xCD00		;opcode for NOP and CALL
+
+EM		.equ	0xFFFF		;top of RAM memory
+BM		.equ	0x0000		;bottom of ROM memory
+COLDSTART	.equ	0x100		;code starts here
+
+UAEM		.equ	0xD800		;user area end of memory address
+
+;US		.equ	0x100		;user area size in cells
+;RTS		.equ	0x100		;return stack/TIB size
+;DTS		.equ	0x100		;data stack size
+
+SPP		.equ	UAEM - 0x02	;start of data stack (SP0)
+UPP		.equ	UAEM - 0x100	;start of user area (UP0)
+RPP		.equ	UAEM - 0x102	;start of return stack (RP0)
+TIBB		.equ	UAEM - 0x200	;terminal input buffer (TIB)
+NAMEE		.equ	BM + 0x1FFE	;initial name (ROM)dictionary
+CODEE		.equ	BM + 0x0000	;initial code (ROM)dictionary
+
+SVAB		.equ	0xD800		;System Variable Address Base
+RPA		.equ	SVAB + 0x0C	;R-stack pointer, simulate RP reg
+UPA		.equ	SVAB + 0x0E	;User area

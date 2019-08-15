@@ -1,0 +1,27 @@
+;; Coldstart code
+
+	DI
+
+.if	i8080 == 1		; no IM 2 on 8080
+.else
+;
+; Set IM2
+;
+	IM 2
+.endif	; I8080
+
+;
+; init SP, RP, UP
+;
+	LD HL, #SPP
+	LD SP, HL		;INIT SP
+;
+	LD HL, #RPP		;init to RPP
+	LD (RPA), HL		;simulated R-stack reg at RPA
+;
+	LD HL, #UPP		;use the initial USER VARIABLE area
+	LD (UPA), HL		;user area at UPA
+;
+	LD BC, #ERROR		;jmp 0 cold-start whenever R-stack underflow-used
+
+	JP COLD

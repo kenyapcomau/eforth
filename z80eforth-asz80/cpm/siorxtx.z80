@@ -1,0 +1,50 @@
+;; Serial I/O words
+
+BDOS	.equ	5		;BDOS entry point
+
+;   ?RX		( -- c T | F )
+;	Return input character and true, or a false if no input.
+
+	$CODE	3,'?RX',QRX
+
+	push bc
+	ld c, #6		;raw console I/O
+	ld de, #0x00ff		;a=character or 0 if no character, 
+; Use BDOS call
+	call BDOS
+	or a
+	jr nz, $1
+	pop bc
+	ld l, a
+	ld h, a
+	push hl
+	JP NextStep
+$1:
+	pop bc
+	ld e, a
+	ld d, #0
+	push de
+	ld hl, #0xffff
+	push hl
+	JP NextStep
+
+
+;
+;   TX!		( c -- )
+;	Send character c to the output device.
+
+	$CODE	3,'TX!',TXSTO
+
+	pop hl
+	push bc
+	ld a, l
+	cp a, #0xff
+	jr z, $2		;can't print 0xff
+	ld e, a
+	ld c, #6		;raw console I/O
+; Use BDOS call
+	call BDOS
+$2:
+	pop bc
+	JP NextStep
+

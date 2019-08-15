@@ -1,0 +1,8 @@
+;; Device dependent I/O
+
+;   	!IO		( -- )
+;	Initialize the devices.
+
+	$CODE	3,'!IO',STOIO ;
+
+	JP NextStep

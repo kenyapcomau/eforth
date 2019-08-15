@@ -1,0 +1,10 @@
+;; Return to CP/M
+
+;   BYE		( -- )
+;	Return to CP/M
+
+	$CODE	3,'BYE',BYE
+
+	ld c, #0
+; Use BDOS call
+	call 5
