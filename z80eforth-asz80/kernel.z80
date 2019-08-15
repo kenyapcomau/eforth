@@ -92,7 +92,7 @@ DECLOW:
 ; lo&Hi byte dec: 134t==(10MHz)13.4usec
 
 
-;   ?brAhnch	 ( f -- )
+;   ?branch	 ( f -- )
 ;	Branch if flag is zero.
 
 	$CODE	COMPO+7,'?branch',QBRAN

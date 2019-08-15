@@ -1,6 +1,6 @@
-;; The first 128 bytes of the image, boot and other vectors
+;; The first 128 bytes of the image
 
-	JP COLDSTART	;Jump to cold start  100H
+	JP COLDSTART	;Jump to cold start 0x100
 	.rept 120	;should be 122, but we'll match the binary for now
 	NOP
 	.endm
