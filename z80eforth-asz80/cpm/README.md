@@ -8,7 +8,7 @@ Only two Forth words were edited and one new one created (or rather reinstated).
 
 The implementation of QRX is not refined. There is no line buffer so mistakes can't be corrected. To enhance this a line buffer should be established so that when a character is asked for the buffer is checked first and if non-empty the next character is returned. Otherwise if the buffer is empty then input is checked. If it's not CR or NL then it is put in the buffer and "no character" returned to Forth. Otherwise CR is appended to the buffer and the character from the head of the buffer is returned. The net effect is that the Forth interpreter doesn't see any characters until the line is completed.
 
-Echo should now be done in the collection routine instead by Forth. It should also allow backspace to delete the last character in the buffer for corrections. Remember that CR or NL should echo as CR NL.
+Echo should now be done in the collection routine instead by Forth. It should also allow backspace to delete the last character in the buffer for corrections.
 
 These modifications are left as an exercise to the reader.
 
