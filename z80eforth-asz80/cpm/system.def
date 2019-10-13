@@ -2,6 +2,10 @@ i8080		.equ	0		; set to 1 for 8080 instruction set
 
 .if i8080 == 1
 		.8080
+		.macro	JR	COND,TARGET
+		.list	(meb,me)
+		JP		COND,TARGET
+		.endm
 .endif
 
 ; Version control
